@@ -1,0 +1,249 @@
+# Pre-commit configuration for Snowmobile Product Reconciliation
+# Enforces Universal Development Standards automatically
+
+repos:
+  # Basic file checks and formatting
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      # File quality checks
+      - id: trailing-whitespace
+        name: Remove trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix end of files
+      - id: check-yaml
+        name: Check YAML syntax
+        args: ['--unsafe']  # Allow custom YAML tags
+      - id: check-json
+        name: Check JSON syntax
+      - id: check-toml
+        name: Check TOML syntax
+      - id: check-xml
+        name: Check XML syntax
+      
+      # Code quality checks
+      - id: check-ast
+        name: Check Python AST
+      - id: check-docstring-first
+        name: Check docstring is first
+      - id: debug-statements
+        name: Check for debug statements
+      - id: check-builtin-literals
+        name: Check builtin type constructor use
+      
+      # Merge and case conflict checks
+      - id: check-merge-conflict
+        name: Check for merge conflicts
+      - id: check-case-conflict
+        name: Check for case conflicts
+      
+      # File size and content checks
+      - id: check-added-large-files
+        name: Check for large files
+        args: ['--maxkb=1000']  # 1MB max file size
+      - id: mixed-line-ending
+        name: Mixed line ending
+
+  # Python code formatting with Black
+  - repo: https://github.com/psf/black
+    rev: 23.9.1
+    hooks:
+      - id: black
+        name: Format Python code with Black
+        language_version: python3.10
+        args: ['--line-length=88']
+
+  # Python linting and code quality with Ruff
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+        name: Lint Python code with Ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+
+  # Python type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        name: Static type checking with mypy
+        args: [--strict, --no-error-summary]
+        additional_dependencies: 
+          - pydantic
+          - sqlalchemy[mypy]
+          - pandas
+          - types-requests
+          - types-python-dateutil
+        types_or: [python, pyi]
+        exclude: ^(tests/|migrations/)
+
+  # Security scanning with bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        name: Security scan with Bandit
+        args: [-c, pyproject.toml]
+        additional_dependencies: ["bandit[toml]"]
+        exclude: ^tests/
+
+  # Dependency security check
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+        name: Check dependencies for security vulnerabilities
+
+  # Import sorting with isort (configured to work with Black)
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        name: Sort Python imports
+        args: ["--profile", "black", "--filter-files"]
+
+  # Dockerfile linting
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint
+        name: Lint Dockerfile
+        types: [dockerfile]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5
+    hooks:
+      - id: shellcheck
+        name: Lint shell scripts
+
+  # YAML formatting
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.0.3
+    hooks:
+      - id: prettier
+        name: Format YAML, JSON, and Markdown
+        types_or: [yaml, json, markdown]
+        exclude: ^\.github/
+
+  # Project-specific custom hooks
+  - repo: local
+    hooks:
+      # Check for hardcoded confidence scores
+      - id: check-hardcoded-confidence
+        name: Check for hardcoded confidence scores
+        entry: bash -c 'if grep -r "0\.[89][0-9]" src/ --include="*.py" | grep -v test; then echo "Hardcoded confidence scores found!"; exit 1; fi'
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # Check for TODO/FIXME/HACK in production code
+      - id: check-todo-fixme
+        name: Check for TODO/FIXME/HACK comments
+        entry: bash -c 'if grep -r "TODO\|FIXME\|HACK" src/ --include="*.py" | grep -v test; then echo "TODO/FIXME/HACK found in production code!"; exit 1; fi'
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # Check for JavaScript files in src/ (should be Python only)
+      - id: check-no-javascript
+        name: Check for JavaScript files in src/
+        entry: bash -c 'if find src/ -name "*.js" -o -name "*.ts" | grep -q .; then echo "JavaScript files found in src/!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      # Check for mock usage in production code
+      - id: check-no-mocks
+        name: Check for mock objects in production code
+        entry: bash -c 'if grep -r "mock\|Mock" src/ --include="*.py" | grep -v test | grep -q .; then echo "Mock objects found in production code!"; exit 1; fi'
+        language: system
+        types: [python]
+        pass_filenames: false
+
+      # Validate Pydantic models can be imported
+      - id: validate-pydantic-models
+        name: Validate Pydantic models
+        entry: python -c "from src.models.domain import *; print('All Pydantic models valid')"
+        language: system
+        types: [python]
+        files: ^src/models/
+        pass_filenames: false
+
+      # Check for secrets in environment files
+      - id: check-env-secrets
+        name: Check for actual secrets in .env files
+        entry: bash -c 'if grep -E "(sk-ant-[a-zA-Z0-9]{20,}|AKIA[A-Z0-9]{16}|password.*[a-zA-Z0-9]{8,})" .env* 2>/dev/null | grep -v example; then echo "Actual secrets found in .env files!"; exit 1; fi'
+        language: system
+        types: [text]
+        files: ^\.env
+        pass_filenames: false
+
+      # Fast pytest run for critical tests
+      - id: pytest-fast
+        name: Run fast test suite
+        entry: python -m pytest tests/unit/ --tb=short -x -q
+        language: system
+        types: [python]
+        files: ^(src/|tests/)
+        pass_filenames: false
+
+      # Check database models can be imported
+      - id: validate-database-models
+        name: Validate database models
+        entry: python -c "from src.models.database import Base; print('Database models valid')"
+        language: system
+        types: [python]
+        files: ^src/models/database\.py
+        pass_filenames: false
+
+      # Validate settings configuration
+      - id: validate-settings
+        name: Validate application settings
+        entry: python -c "from src.config.settings import get_settings; get_settings(); print('Settings configuration valid')"
+        language: system
+        types: [python]
+        files: ^src/config/settings\.py
+        pass_filenames: false
+
+      # Check for proper imports in __init__.py files
+      - id: check-init-files
+        name: Check __init__.py files
+        entry: bash -c 'for f in $(find src/ -name "__init__.py"); do if [ ! -s "$f" ]; then echo "Warning: Empty __init__.py at $f"; fi; done'
+        language: system
+        files: __init__\.py$
+        pass_filenames: false
+
+# Global pre-commit configuration
+default_stages: [commit]
+fail_fast: false
+repos_dir: ~/.cache/pre-commit/repos
+
+# Exclude patterns (global)
+exclude: |
+  (?x)^(
+      migrations/versions/.*\.py|
+      \.git/.*|
+      \.venv/.*|
+      venv/.*|
+      __pycache__/.*|
+      \.pytest_cache/.*|
+      \.coverage.*|
+      htmlcov/.*|
+      \.mypy_cache/.*|
+      logs/.*|
+      \.DS_Store|
+      profile\.stats|
+      memory-profile\.png
+  )$
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [mypy, bandit, python-safety-dependencies-check]
+  submodules: false
