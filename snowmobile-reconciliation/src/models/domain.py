@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, validator
 
 
 class ProcessingStage(str, Enum):
@@ -99,7 +99,8 @@ class BaseModelSpecification(BaseModel):
     )
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
-    @validator("base_model_id")
+    @field_validator("base_model_id")
+    @classmethod
     def validate_base_model_id(cls, v: str) -> str:
         """Ensure base model ID follows naming convention"""
         if not v or len(v) < 2:
@@ -110,6 +111,34 @@ class BaseModelSpecification(BaseModel):
 # ============================================================================
 # Pipeline Processing Models
 # ============================================================================
+
+
+class PipelineContext(BaseModel):
+    """Context passed between pipeline stages"""
+
+    # Current processing data
+    price_entry: PriceEntry = Field(..., description="Entry being processed")
+    matched_base_model: Optional["BaseModelSpecification"] = Field(
+        None, description="Base model matched in stage 1"
+    )
+    inherited_specs: dict[str, Any] = Field(
+        default_factory=dict, description="Inherited specifications"
+    )
+    customizations: dict[str, Any] = Field(
+        default_factory=dict, description="Applied customizations"
+    )
+    spring_options: list["SpringOption"] = Field(
+        default_factory=list, description="Detected spring options"
+    )
+
+    # Processing metadata
+    processing_id: UUID = Field(default_factory=uuid4)
+    stage_results: list["PipelineStageResult"] = Field(default_factory=list)
+    current_confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+    model_config = {"arbitrary_types_allowed": True}
 
 
 class PipelineStageResult(BaseModel):
@@ -168,29 +197,31 @@ class ProductSpecification(BaseModel):
     overall_confidence: float = Field(
         ge=0.0, le=1.0, description="Final confidence score"
     )
-    confidence_level: ConfidenceLevel = Field(
-        ..., description="Confidence classification"
+    confidence_level: Optional[ConfidenceLevel] = Field(
+        None, description="Confidence classification"
     )
 
     # Metadata
     created_at: datetime = Field(default_factory=datetime.utcnow)
     processed_by: str = Field(default="system", description="Processing system/user")
 
-    @validator("confidence_level", pre=False, always=True)
+    @field_validator("confidence_level", mode="before")
+    @classmethod
     def set_confidence_level(
-        cls, v: Optional[ConfidenceLevel], values: dict[str, Any]
-    ) -> ConfidenceLevel:
+        cls, v: Optional[ConfidenceLevel]
+    ) -> Optional[ConfidenceLevel]:
         """Auto-determine confidence level from overall confidence score"""
-        if v is not None:
-            return v
-
-        confidence = values.get("overall_confidence", 0.0)
-        if confidence >= 0.9:
-            return ConfidenceLevel.HIGH
-        elif confidence >= 0.7:
-            return ConfidenceLevel.MEDIUM
-        else:
-            return ConfidenceLevel.LOW
+        return v  # Will be set in model_post_init
+    
+    def model_post_init(self, __context) -> None:
+        """Auto-calculate confidence level after model initialization"""
+        if self.confidence_level is None:
+            if self.overall_confidence >= 0.9:
+                self.confidence_level = ConfidenceLevel.HIGH
+            elif self.overall_confidence >= 0.7:
+                self.confidence_level = ConfidenceLevel.MEDIUM
+            else:
+                self.confidence_level = ConfidenceLevel.LOW
 
 
 # ============================================================================

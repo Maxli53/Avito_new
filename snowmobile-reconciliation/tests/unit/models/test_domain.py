@@ -64,7 +64,7 @@ class TestPriceEntry:
                 extraction_confidence=0.95,
             )
 
-        assert "ensure this value is greater than or equal to 0" in str(exc_info.value)
+        assert "Input should be greater than or equal to 0" in str(exc_info.value)
 
     def test_price_entry_year_validation(self):
         """Test model year validation"""
@@ -105,12 +105,12 @@ class TestPriceEntry:
         )
 
         # Test dict serialization
-        data = price_entry.dict()
+        data = price_entry.model_dump()
         assert data["model_code"] == "LTTA"
         assert data["price"] == Decimal("25000.00")
 
         # Test JSON serialization
-        json_str = price_entry.json()
+        json_str = price_entry.model_dump_json()
         parsed_data = json.loads(json_str)
         assert parsed_data["model_code"] == "LTTA"
         assert float(parsed_data["price"]) == 25000.0
@@ -474,8 +474,8 @@ class TestModelInteractions:
         assert product.confidence_level == ConfidenceLevel.MEDIUM
 
         # Verify we can serialize and deserialize
-        json_data = product.json()
-        reconstructed = ProductSpecification.parse_raw(json_data)
+        json_data = product.model_dump_json()
+        reconstructed = ProductSpecification.model_validate_json(json_data)
 
         assert reconstructed.model_code == product.model_code
         assert len(reconstructed.pipeline_results) == 2
@@ -522,8 +522,8 @@ class TestModelPerformance:
         assert len(product.specifications) == 1000
 
         # Should serialize/deserialize correctly
-        json_data = product.json()
-        reconstructed = ProductSpecification.parse_raw(json_data)
+        json_data = product.model_dump_json()
+        reconstructed = ProductSpecification.model_validate_json(json_data)
         assert len(reconstructed.specifications) == 1000
 
     def test_unicode_handling(self):
@@ -539,9 +539,9 @@ class TestModelPerformance:
         )
 
         assert "Ü" in product.model_name
-        assert "ø" in product.model_code
+        assert "Ë" in product.model_code
 
         # Should serialize correctly
-        json_data = product.json()
-        reconstructed = ProductSpecification.parse_raw(json_data)
+        json_data = product.model_dump_json()
+        reconstructed = ProductSpecification.model_validate_json(json_data)
         assert reconstructed.model_name == product.model_name

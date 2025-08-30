@@ -1,0 +1,29 @@
+snowmobile-reconciliation/
+├── src/
+│   ├── __init__.py                     ✅ (src_init.py)
+│   ├── main.py                         ✅ (main_app.py) 
+│   ├── cli.py                          ✅ (cli_entry.py)
+│   ├── models/
+│   │   ├── domain.py                   ✅ (domain_models.py)
+│   │   └── database.py                 ✅ (database_models.py)
+│   ├── config/
+│   │   └── settings.py                 ✅ (config_settings.py)
+│   ├── repositories/
+│   │   ├── base.py                     ✅ (base_repository.py)
+│   │   └── product_repository.py       ✅ (product_repository.py)
+│   ├── pipeline/                       📁 CREATE THIS FOLDER
+│   │   ├── inheritance_pipeline.py     ✅ NEW FILE PROVIDED
+│   │   └── stages/                     📁 CREATE THIS SUBFOLDER  
+│   │       ├── base_stage.py           ✅ NEW FILE PROVIDED
+│   │       └── base_model_matching.py  ✅ NEW FILE PROVIDED
+│   └── services/
+│       └── claude_enrichment.py        ✅ (claude_enrichment_service.py)
+├── tests/
+│   └── unit/
+│       └── models/
+│           └── test_domain.py          ✅ (test_domain_models.py)
+├── pyproject.toml                      ✅ (pyproject.toml.txt)
+├── Makefile                           ✅ NEW FILE PROVIDED
+├── .env.example                       ✅ (env_example.sh)
+├── .pre-commit-config.yaml            ✅ (pre_commit_config.txt)
+└── GETTING_STARTED.md                 ✅ (getting_started_guide.md)
