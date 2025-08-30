@@ -23,7 +23,8 @@
       "Bash(make:*)",
       "Bash(poetry install:*)",
       "Bash(pip install:*)",
-      "Bash(poetry run:*)"
+      "Bash(poetry run:*)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

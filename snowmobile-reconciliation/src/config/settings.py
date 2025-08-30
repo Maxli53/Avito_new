@@ -8,17 +8,18 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
-from pydantic import BaseSettings, Field, PostgresDsn, validator
+from pydantic import Field, field_validator, PostgresDsn
+from pydantic_settings import BaseSettings
 
 
 class DatabaseSettings(BaseSettings):
     """Database configuration with connection pooling"""
 
     # Core database settings
-    database_url: PostgresDsn = Field(..., env="DATABASE_URL")
-    database_pool_size: int = Field(5, env="DB_POOL_SIZE")
-    database_max_overflow: int = Field(10, env="DB_MAX_OVERFLOW")
-    database_pool_timeout: int = Field(30, env="DB_POOL_TIMEOUT")
+    database_url: PostgresDsn = Field(..., description="Database connection URL")
+    database_pool_size: int = Field(default=5, description="Database connection pool size")
+    database_max_overflow: int = Field(default=10, description="Maximum overflow connections")
+    database_pool_timeout: int = Field(default=30, description="Pool connection timeout")
     database_pool_recycle: int = Field(3600, env="DB_POOL_RECYCLE")
 
     # Connection settings
