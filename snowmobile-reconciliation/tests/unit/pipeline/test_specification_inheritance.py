@@ -36,11 +36,9 @@ class TestSpecificationInheritanceStage:
             category="Trail",
             source_catalog="test_catalog.pdf",
             extraction_quality=0.9,
-            specifications={
-                "engine": {"type": "2-stroke", "displacement": "600cc"},
-                "suspension": "tMotion",
-                "track": {"length": "137", "width": "15"},
-            },
+            engine_specs={"type": "2-stroke", "displacement": "600cc"},
+            suspension={"type": "tMotion"},
+            dimensions={"track_length": "137", "track_width": "15"},
             inheritance_confidence=0.85,
         )
 
@@ -63,6 +61,7 @@ class TestSpecificationInheritanceStage:
         return PipelineContext(
             price_entry=price_entry,
             matched_base_model=base_model,
+            processing_id=uuid4(),
         )
 
     @pytest.fixture
@@ -82,9 +81,10 @@ class TestSpecificationInheritanceStage:
         
         # Check that base specifications are inherited
         inherited_specs = result["inherited_specs"]
-        assert "engine" in inherited_specs
-        assert "suspension" in inherited_specs
-        assert "track" in inherited_specs
+        assert "type" in inherited_specs  # Engine type
+        assert "displacement" in inherited_specs  # Engine displacement
+        assert "track_length" in inherited_specs  # Track dimensions
+        assert "track_width" in inherited_specs
 
     @pytest.mark.asyncio
     async def test_brand_specific_inheritance(self, stage, context):

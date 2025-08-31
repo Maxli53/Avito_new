@@ -38,6 +38,10 @@ class SpringOptionType(str, Enum):
     COLOR_CHANGE = "color_change"
     SUSPENSION_UPGRADE = "suspension_upgrade"
     FEATURE_ADDITION = "feature_addition"
+    COMFORT_UPGRADE = "comfort_upgrade"
+    WEATHER_PROTECTION = "weather_protection"
+    STORAGE_UPGRADE = "storage_upgrade"
+    PERFORMANCE_UPGRADE = "performance_upgrade"
 
 
 # ============================================================================
@@ -98,6 +102,9 @@ class BaseModelSpecification(BaseModel):
         ge=0.0, le=1.0, description="Catalog extraction quality"
     )
     last_updated: datetime = Field(default_factory=datetime.utcnow)
+    inheritance_confidence: float = Field(
+        default=0.8, ge=0.0, le=1.0, description="Confidence for inheritance"
+    )
 
     @field_validator("base_model_id")
     @classmethod

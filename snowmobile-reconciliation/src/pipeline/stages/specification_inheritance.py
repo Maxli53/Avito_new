@@ -44,8 +44,12 @@ class SpecificationInheritanceStage(BasePipelineStage):
             base_model = context.matched_base_model
             price_entry = context.price_entry
 
-            # Start with base model specifications
-            inherited_specs = base_model.specifications.copy()
+            # Start with base model specifications - combine all spec fields
+            inherited_specs = {}
+            inherited_specs.update(base_model.engine_specs)
+            inherited_specs.update(base_model.suspension)
+            inherited_specs.update(base_model.dimensions)
+            inherited_specs.update(base_model.features)
             
             # Apply brand-specific inheritance rules
             inherited_specs = self._apply_brand_inheritance(

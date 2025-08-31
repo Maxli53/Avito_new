@@ -24,7 +24,8 @@
       "Bash(poetry install:*)",
       "Bash(pip install:*)",
       "Bash(poetry run:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
