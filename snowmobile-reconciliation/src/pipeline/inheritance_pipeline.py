@@ -8,7 +8,7 @@ import time
 from typing import Optional
 
 import structlog
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.models.domain import (
     ConfidenceLevel,
@@ -359,8 +359,7 @@ class PipelineContext(BaseModel):
     claude_tokens_used: int = 0
     claude_cost: float = 0.0
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class SingleEntryResult(BaseModel):

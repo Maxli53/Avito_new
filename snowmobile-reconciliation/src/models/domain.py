@@ -10,7 +10,7 @@ from enum import Enum
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, Field, field_validator, validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ProcessingStage(str, Enum):
@@ -69,9 +69,10 @@ class PriceEntry(BaseModel):
         ge=0.0, le=1.0, description="PDF extraction quality"
     )
 
-    class Config:
-        str_strip_whitespace = True
-        validate_assignment = True
+    model_config = ConfigDict(
+        str_strip_whitespace=True,
+        validate_assignment=True
+    )
 
 
 # ============================================================================
@@ -145,7 +146,7 @@ class PipelineContext(BaseModel):
     errors: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
 
-    model_config = {"arbitrary_types_allowed": True}
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
 class PipelineStageResult(BaseModel):
@@ -277,7 +278,7 @@ class PipelineConfig(BaseModel):
 class ProcessingRequest(BaseModel):
     """Request to process price list entries through pipeline"""
 
-    price_entries: list[PriceEntry] = Field(..., min_items=1, max_items=1000)
+    price_entries: list[PriceEntry] = Field(..., min_length=1, max_length=1000)
     config_override: Optional[PipelineConfig] = Field(
         None, description="Override default config"
     )

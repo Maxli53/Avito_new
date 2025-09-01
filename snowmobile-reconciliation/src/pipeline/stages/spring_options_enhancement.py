@@ -39,7 +39,7 @@ class SpringOptionsEnhancementStage(BasePipelineStage):
                 "description": "Ripsaw aggressive track",
                 "confidence": 0.85,
             },
-            r"POWER_CLAW": {
+            r"POWER_?CLAW": {
                 "type": SpringOptionType.TRACK_UPGRADE,
                 "description": "Power Claw deep snow track",
                 "confidence": 0.8,

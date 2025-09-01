@@ -25,7 +25,15 @@
       "Bash(pip install:*)",
       "Bash(poetry run:*)",
       "Bash(timeout:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(find:*)",
+      "Bash(coverage report:*)",
+      "Bash(cat:*)",
+      "Bash(coverage run:*)",
+      "Bash(DB_DATABASE_URL=\"postgresql://user:pass@localhost:5432/test\" CLAUDE_API_KEY=\"test-key\" poetry run pytest tests/unit/config/test_settings.py -v)",
+      "Bash(DB_DATABASE_URL=\"postgresql://user:pass@localhost:5432/test\" CLAUDE_API_KEY=\"test-key\" poetry run pytest tests/unit/models/ tests/unit/pipeline/ --cov=src --cov-report=term -v --tb=line)",
+      "Bash(grep:*)",
+      "Read(C:\\Users\\maxli\\.cache\\pre-commit/**)"
     ],
     "deny": [],
     "ask": []

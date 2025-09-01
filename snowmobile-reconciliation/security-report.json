@@ -1,6 +1,6 @@
 {
   "errors": [],
-  "generated_at": "2025-08-30T18:52:50Z",
+  "generated_at": "2025-09-01T14:15:37Z",
   "metrics": {
     "_totals": {
       "CONFIDENCE.HIGH": 3,
@@ -11,7 +11,7 @@
       "SEVERITY.LOW": 3,
       "SEVERITY.MEDIUM": 3,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 3680,
+      "loc": 5655,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -25,6 +25,45 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 22,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/api\\__init__.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 0,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/api\\endpoints.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 358,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/api\\main.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 145,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -63,7 +102,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 2,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 249,
+      "loc": 255,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -115,7 +154,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 221,
+      "loc": 253,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -141,7 +180,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 303,
+      "loc": 302,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -193,7 +232,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 8,
+      "loc": 182,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -206,7 +245,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 8,
+      "loc": 223,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -219,7 +258,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 8,
+      "loc": 146,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -232,7 +271,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 8,
+      "loc": 242,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -288,6 +327,19 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "src/repositories\\base_model_repository.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 340,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "src/repositories\\product_repository.py": {
       "CONFIDENCE.HIGH": 0,
       "CONFIDENCE.LOW": 0,
@@ -311,6 +363,19 @@
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
       "loc": 0,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "src/services\\batch_processor.py": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 334,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -414,7 +479,7 @@
       "test_name": "subprocess_without_shell_equals_true"
     },
     {
-      "code": "232     # Server settings\n233     host: str = Field(\"0.0.0.0\", env=\"HOST\")\n234     port: int = Field(8000, env=\"PORT\", ge=1024, le=65535)\n",
+      "code": "235     # Server settings\n236     host: str = Field(\"0.0.0.0\", env=\"HOST\")\n237     port: int = Field(8000, env=\"PORT\", ge=1024, le=65535)\n",
       "col_offset": 22,
       "end_col_offset": 31,
       "filename": "src/config\\settings.py",
@@ -425,16 +490,16 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Possible binding to all interfaces.",
-      "line_number": 233,
+      "line_number": 236,
       "line_range": [
-        233
+        236
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b104_hardcoded_bind_all_interfaces.html",
       "test_id": "B104",
       "test_name": "hardcoded_bind_all_interfaces"
     },
     {
-      "code": "238     upload_max_size_mb: int = Field(100, env=\"UPLOAD_MAX_SIZE_MB\", ge=1, le=1000)\n239     temp_dir: str = Field(\"/tmp/snowmobile\", env=\"TEMP_DIR\")\n240 \n",
+      "code": "241     upload_max_size_mb: int = Field(100, env=\"UPLOAD_MAX_SIZE_MB\", ge=1, le=1000)\n242     temp_dir: str = Field(\"/tmp/snowmobile\", env=\"TEMP_DIR\")\n243 \n",
       "col_offset": 26,
       "end_col_offset": 43,
       "filename": "src/config\\settings.py",
@@ -445,9 +510,9 @@
       },
       "issue_severity": "MEDIUM",
       "issue_text": "Probable insecure usage of temp file/directory.",
-      "line_number": 239,
+      "line_number": 242,
       "line_range": [
-        239
+        242
       ],
       "more_info": "https://bandit.readthedocs.io/en/1.8.6/plugins/b108_hardcoded_tmp_directory.html",
       "test_id": "B108",

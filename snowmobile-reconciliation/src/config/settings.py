@@ -8,7 +8,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
-from pydantic import Field, field_validator, PostgresDsn
+from pydantic import ConfigDict, Field, field_validator, PostgresDsn
 from pydantic_settings import BaseSettings
 
 
@@ -29,15 +29,15 @@ class DatabaseSettings(BaseSettings):
     # Migration settings
     alembic_config_path: str = Field("alembic.ini", env="ALEMBIC_CONFIG_PATH")
 
-    @validator("database_url")
+    @field_validator("database_url")
+    @classmethod
     def validate_database_url(cls, v):
         """Ensure database URL is valid PostgreSQL URL"""
         if not str(v).startswith("postgresql"):
             raise ValueError("Database URL must be PostgreSQL (postgresql://...)")
         return v
 
-    class Config:
-        env_prefix = "DB_"
+    model_config = ConfigDict(env_prefix="DB_")
 
 
 class ClaudeSettings(BaseSettings):
@@ -72,7 +72,8 @@ class ClaudeSettings(BaseSettings):
     )
     claude_cost_alerts_enabled: bool = Field(True, env="CLAUDE_COST_ALERTS_ENABLED")
 
-    @validator("claude_api_key")
+    @field_validator("claude_api_key")
+    @classmethod
     def validate_api_key(cls, v):
         """Validate Claude API key format"""
         if not v.startswith("sk-ant-"):
@@ -81,8 +82,7 @@ class ClaudeSettings(BaseSettings):
             raise ValueError("Claude API key appears to be too short")
         return v
 
-    class Config:
-        env_prefix = "CLAUDE_"
+    model_config = ConfigDict(env_prefix="CLAUDE_")
 
 
 class PipelineSettings(BaseSettings):
@@ -121,18 +121,18 @@ class PipelineSettings(BaseSettings):
         0.7, env="MIN_SPRING_OPTIONS_CONFIDENCE", ge=0.0, le=1.0
     )
 
-    @validator("manual_review_threshold")
-    def validate_review_threshold(cls, v, values):
+    @field_validator("manual_review_threshold")
+    @classmethod
+    def validate_review_threshold(cls, v, info):
         """Ensure manual review threshold is less than auto accept threshold"""
-        auto_accept = values.get("auto_accept_threshold", 0.9)
+        auto_accept = info.data.get("auto_accept_threshold", 0.9)
         if v >= auto_accept:
             raise ValueError(
                 "Manual review threshold must be less than auto accept threshold"
             )
         return v
 
-    class Config:
-        env_prefix = "PIPELINE_"
+    model_config = ConfigDict(env_prefix="PIPELINE_")
 
 
 class SecuritySettings(BaseSettings):
@@ -155,14 +155,16 @@ class SecuritySettings(BaseSettings):
     rate_limit_enabled: bool = Field(True, env="RATE_LIMIT_ENABLED")
     rate_limit_requests_per_minute: int = Field(60, env="RATE_LIMIT_RPM", ge=1)
 
-    @validator("secret_key")
+    @field_validator("secret_key")
+    @classmethod
     def validate_secret_key(cls, v):
         """Ensure secret key is sufficiently strong"""
         if len(v) < 32:
             raise ValueError("Secret key must be at least 32 characters long")
         return v
 
-    @validator("api_keys")
+    @field_validator("api_keys")
+    @classmethod
     def validate_api_keys(cls, v):
         """Validate API key format"""
         for key in v:
@@ -170,8 +172,7 @@ class SecuritySettings(BaseSettings):
                 raise ValueError("API keys must be at least 20 characters long")
         return v
 
-    class Config:
-        env_prefix = "SECURITY_"
+    model_config = ConfigDict(env_prefix="SECURITY_")
 
 
 class MonitoringSettings(BaseSettings):
@@ -202,7 +203,8 @@ class MonitoringSettings(BaseSettings):
     alerts_enabled: bool = Field(False, env="ALERTS_ENABLED")
     alert_webhook_url: Optional[str] = Field(None, env="ALERT_WEBHOOK_URL")
 
-    @validator("log_level")
+    @field_validator("log_level")
+    @classmethod
     def validate_log_level(cls, v):
         """Validate log level"""
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -210,15 +212,15 @@ class MonitoringSettings(BaseSettings):
             raise ValueError(f"Log level must be one of {valid_levels}")
         return v.upper()
 
-    @validator("log_format")
+    @field_validator("log_format")
+    @classmethod
     def validate_log_format(cls, v):
         """Validate log format"""
         if v not in ["json", "text"]:
             raise ValueError('Log format must be "json" or "text"')
         return v
 
-    class Config:
-        env_prefix = "MONITORING_"
+    model_config = ConfigDict(env_prefix="MONITORING_")
 
 
 class ApplicationSettings(BaseSettings):
@@ -249,7 +251,8 @@ class ApplicationSettings(BaseSettings):
     security: SecuritySettings = SecuritySettings()
     monitoring: MonitoringSettings = MonitoringSettings()
 
-    @validator("environment")
+    @field_validator("environment")
+    @classmethod
     def validate_environment(cls, v):
         """Validate environment name"""
         valid_environments = ["development", "staging", "production"]
@@ -257,10 +260,11 @@ class ApplicationSettings(BaseSettings):
             raise ValueError(f"Environment must be one of {valid_environments}")
         return v
 
-    @validator("debug_mode")
-    def validate_debug_mode(cls, v, values):
+    @field_validator("debug_mode")
+    @classmethod
+    def validate_debug_mode(cls, v, info):
         """Ensure debug mode is disabled in production"""
-        environment = values.get("environment", "development")
+        environment = info.data.get("environment", "development")
         if environment == "production" and v:
             raise ValueError("Debug mode must be disabled in production")
         return v
@@ -277,11 +281,12 @@ class ApplicationSettings(BaseSettings):
         """Check if running in staging environment"""
         return self.environment == "staging"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        use_enum_values = True
+    model_config = ConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        use_enum_values=True
+    )
 
 
 @lru_cache

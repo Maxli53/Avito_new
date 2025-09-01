@@ -145,8 +145,8 @@ class SpecificationInheritanceStage(BasePipelineStage):
         # Legacy adjustments for older models
         if model_year <= 2020:
             specs.pop("connectivity", None)  # Remove if present
-            if specs.get("display") == "digital_gauge":
-                specs["display"] = "analog_gauge"
+            # Legacy models use analog gauges
+            specs["display"] = "analog_gauge"
                 
         return specs
 

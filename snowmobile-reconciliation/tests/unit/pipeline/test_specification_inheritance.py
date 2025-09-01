@@ -158,10 +158,24 @@ class TestSpecificationInheritanceStage:
     @pytest.mark.asyncio
     async def test_legacy_model_inheritance(self, stage, context):
         """Test inheritance for older model years"""
-        # Set older model year
-        context.price_entry.model_year = 2019
+        # Create a new context with older model year (2020 is minimum allowed)
+        legacy_price_entry = PriceEntry(
+            model_code="MXZ_TRAIL_600_EFI",
+            brand="Ski-Doo",
+            price=Decimal("15000.00"),
+            model_year=2020,  # Minimum allowed year, treated as "legacy"
+            source_file="test.pdf",
+            page_number=1,
+            extraction_confidence=0.9,
+        )
         
-        result = await stage._execute_stage(context)
+        legacy_context = PipelineContext(
+            price_entry=legacy_price_entry,
+            matched_base_model=context.matched_base_model,
+            processing_id=uuid4(),
+        )
+        
+        result = await stage._execute_stage(legacy_context)
         inherited_specs = result["inherited_specs"]
         
         # Should not have modern connectivity

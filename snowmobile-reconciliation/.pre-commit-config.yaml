@@ -209,7 +209,7 @@ repos:
       # Check for proper imports in __init__.py files
       - id: check-init-files
         name: Check __init__.py files
-        entry: bash -c "for f in $(find src/ -name \"__init__.py\"); do if [ ! -s \"$f\" ]; then echo \"Warning: Empty __init__.py at $f\"; fi; done"
+        entry: bash -c "for f in \$(find src/ -name __init__.py); do if [ ! -s \$f ]; then echo Warning Empty __init__.py at \$f; fi; done"
         language: system
         files: __init__\.py$
         pass_filenames: false

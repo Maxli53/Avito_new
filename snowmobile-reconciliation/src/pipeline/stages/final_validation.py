@@ -57,6 +57,14 @@ class FinalValidationStage(BasePipelineStage):
             # Update final confidence in product spec
             product_spec.overall_confidence = final_confidence
             
+            # Update confidence level based on new overall confidence
+            if final_confidence >= 0.9:
+                product_spec.confidence_level = ConfidenceLevel.HIGH
+            elif final_confidence >= 0.7:
+                product_spec.confidence_level = ConfidenceLevel.MEDIUM
+            else:
+                product_spec.confidence_level = ConfidenceLevel.LOW
+            
             return {
                 "success": True,
                 "product_specification": product_spec.model_dump(),
@@ -137,6 +145,10 @@ class FinalValidationStage(BasePipelineStage):
         # Check base model matching
         if not context.matched_base_model:
             result["warnings"].append("No base model matched")
+            # If no base model AND no inherited specs, this is an error
+            if len(context.inherited_specs) == 0:
+                result["errors"].append("No base model matched and no specifications inherited")
+                result["passed"] = False
         
         # Check specifications
         if len(context.inherited_specs) < 3:
@@ -300,6 +312,12 @@ class FinalValidationStage(BasePipelineStage):
         specs_count = len(context.inherited_specs) + len(context.customizations)
         completeness_bonus = min(0.1, specs_count * 0.01)
         
-        final_confidence = base_confidence + quality_adjustment + completeness_bonus - error_penalty - warning_penalty
+        # Penalty for unknown/suspect model codes
+        model_code = context.price_entry.model_code.upper()
+        unknown_penalty = 0.0
+        if "UNKNOWN" in model_code or "TEST" in model_code or "XYZ" in model_code:
+            unknown_penalty = 0.3  # Significant penalty for unknown models
+        
+        final_confidence = base_confidence + quality_adjustment + completeness_bonus - error_penalty - warning_penalty - unknown_penalty
         
         return max(0.0, min(0.95, final_confidence))
