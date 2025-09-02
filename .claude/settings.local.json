@@ -18,7 +18,8 @@
       "Bash(pip show:*)",
       "Bash(timeout:*)",
       "Bash(git add:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

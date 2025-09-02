@@ -10,7 +10,6 @@ from typing import List, Dict, Any, Optional
 import logging
 import re
 from datetime import datetime
-import uuid
 
 import sys
 sys.path.append('..')
@@ -29,11 +28,10 @@ class PDFExtractor(BaseExtractor):
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """Initialize PDF extractor with Camelot configuration"""
         default_config = {
-            'camelot_flavor': 'stream',  # Use stream method
-            'camelot_pages': 'all',      # Extract all pages
-            'parser_version': '2.0_camelot',
-            'max_pages': 100,
-            'db_path': 'dual_db.db'
+            'camelot_flavor': 'stream',
+            'camelot_pages': 'all',
+            'parser_version': '2.0_camelot_direct',
+            'db_path': 'TEST_DUAL_PARSER_PIPELINE/dual_db.db'
         }
         
         if config:
@@ -66,23 +64,17 @@ class PDFExtractor(BaseExtractor):
             
             logger.info(f"Camelot found {len(tables)} tables")
             
-            # Process all tables and extract product data
-            all_products = []
+            # Direct extraction to raw_pricelist_data table
+            total_products = self._extract_and_save_raw_data(tables, source)
             
-            for table_idx, table in enumerate(tables):
-                logger.info(f"Processing table {table_idx + 1}, accuracy: {table.accuracy:.2f}")
-                
-                products = self._process_table(table, source, table_idx + 1)
-                all_products.extend(products)
+            # Parse raw data into clean products
+            parsed_products = self._parse_raw_data()
             
-            # Save to database
-            self._save_to_database(all_products, source)
+            self.stats.successful = len(parsed_products)
+            self.stats.total_processed = total_products
             
-            self.stats.successful = len(all_products)
-            self.stats.total_processed = len(all_products)
-            
-            logger.info(f"Successfully extracted {len(all_products)} products from {source}")
-            return all_products
+            logger.info(f"Successfully extracted {total_products} raw records and parsed {len(parsed_products)} products")
+            return parsed_products
             
         except Exception as e:
             self.stats.failed += 1
@@ -100,286 +92,361 @@ class PDFExtractor(BaseExtractor):
         """Extract with pre/post processing hooks"""
         return self.extract(source, **kwargs)
     
-    def _process_table(self, table, source_path: Path, table_number: int) -> List[ProductData]:
-        """Process a single table and extract product data"""
-        products = []
+    def _extract_and_save_raw_data(self, tables, source: Path) -> int:
+        """Extract raw data from all tables and save to database - direct row-to-record mapping"""
         
-        try:
+        db_path = self.config['db_path']
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        price_list_id = f"{source.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        total_products = 0
+        
+        # Process each table
+        for table_idx, table in enumerate(tables):
             df = table.df
-            logger.info(f"Table shape: {df.shape}")
+            logger.info(f"Processing table {table_idx + 1} (shape: {df.shape}, accuracy: {table.accuracy:.2f})")
             
-            # Find header row (contains Finnish field names)
-            header_row = self._find_header_row(df)
+            # Find header row
+            header_row = None
+            for row_idx in range(min(10, len(df))):
+                row_text = ' '.join(str(cell) for cell in df.iloc[row_idx] if str(cell) != 'nan')
+                if 'Malli' in row_text and 'Paketti' in row_text:
+                    header_row = row_idx
+                    break
+            
             if header_row is None:
-                logger.warning("No header row found, skipping table")
-                return products
+                logger.warning(f"No header found in table {table_idx + 1}, skipping")
+                continue
             
-            logger.info(f"Found headers at row {header_row}")
+            logger.info(f"Header found at row {header_row}")
             
             # Extract column mapping
-            column_mapping = self._extract_column_mapping(df, header_row)
+            column_mapping = {}
+            for col_idx in range(len(df.columns)):
+                col_text = ""
+                # Check header row and next row
+                for h_row in [header_row, header_row + 1]:
+                    if h_row < len(df):
+                        cell_value = df.iloc[h_row, col_idx]
+                        if str(cell_value) != 'nan':
+                            col_text += str(cell_value) + " "
+                
+                col_text = col_text.strip()
+                
+                # Map columns
+                if 'Tuotenro' in col_text or 'nro' in col_text:
+                    column_mapping['model_code'] = col_idx
+                elif 'Malli' in col_text:
+                    column_mapping['malli'] = col_idx
+                elif 'Paketti' in col_text:
+                    column_mapping['paketti'] = col_idx
+                elif 'Moottori' in col_text:
+                    column_mapping['moottori'] = col_idx
+                elif 'Telamatto' in col_text:
+                    column_mapping['telamatto'] = col_idx
+                elif 'Käynnistin' in col_text:
+                    column_mapping['kaynnistin'] = col_idx
+                elif 'Mittaristo' in col_text:
+                    column_mapping['mittaristo'] = col_idx
+                elif 'Kevätoptiot' in col_text or 'optiot' in col_text:
+                    column_mapping['kevatoptiot'] = col_idx
+                elif 'Väri' in col_text:
+                    column_mapping['vari'] = col_idx
+                elif 'Suositushinta' in col_text or 'ALV' in col_text:
+                    column_mapping['price'] = col_idx
+            
             logger.info(f"Column mapping: {column_mapping}")
             
-            # Process data rows (after header)
-            data_start_row = header_row + 2  # Skip header and any separator rows
+            # Extract products - simple row-to-record mapping
+            table_products = 0
             
-            current_product = {}
-            
-            for row_idx in range(data_start_row, len(df)):
+            for row_idx in range(header_row + 2, len(df)):
                 row_data = df.iloc[row_idx].tolist()
                 
-                # Check if this is a new product row (has model code)
-                model_code = self._extract_model_code(row_data, column_mapping)
+                # Extract all fields from this row using column mapping
+                product = {}
+                for field, col_idx in column_mapping.items():
+                    if col_idx < len(row_data):
+                        value = str(row_data[col_idx]).strip()
+                        if value and value != 'nan':
+                            product[field] = value
                 
-                if model_code:
-                    # Save previous product if exists
-                    if current_product:
-                        product = self._create_product_data(current_product, source_path, table_number)
-                        if product:
-                            products.append(product)
-                    
-                    # Start new product
-                    current_product = self._extract_product_data(row_data, column_mapping)
-                    current_product['model_code'] = model_code
-                    
-                else:
-                    # This might be a continuation row (for track specs, colors, etc.)
-                    if current_product:
-                        self._merge_continuation_row(current_product, row_data, column_mapping)
+                # Save each row as a separate record
+                if product:  # Only save if we extracted any data
+                    self._save_raw_product_to_db(cursor, product, price_list_id, table_idx + 1)
+                    table_products += 1
             
-            # Don't forget the last product
-            if current_product:
-                product = self._create_product_data(current_product, source_path, table_number)
-                if product:
-                    products.append(product)
-            
-            logger.info(f"Extracted {len(products)} products from table {table_number}")
-            return products
-            
-        except Exception as e:
-            logger.error(f"Error processing table: {e}")
-            return products
+            logger.info(f"Products extracted from table {table_idx + 1}: {table_products}")
+            total_products += table_products
+        
+        # Commit and close
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"Total raw records saved: {total_products}")
+        return total_products
     
-    def _find_header_row(self, df) -> Optional[int]:
-        """Find row containing Finnish field headers"""
-        finnish_headers = ['Tuotenro', 'Malli', 'Paketti', 'Moottori', 'Telamatto', 
-                          'Käynnistin', 'Mittaristo', 'Kevätoptiot', 'Väri', 'Suositushinta']
+    def _save_raw_product_to_db(self, cursor, product_dict: Dict[str, str], price_list_id: str, page_num: int):
+        """Save raw product record to database"""
         
-        for row_idx in range(min(10, len(df))):  # Check first 10 rows
-            row_text = ' '.join(str(cell) for cell in df.iloc[row_idx] if str(cell) != 'nan')
-            
-            found_headers = sum(1 for header in finnish_headers if header in row_text)
-            if found_headers >= 5:  # Found most headers
-                return row_idx
+        # Parse price
+        price = 0.0
+        if 'price' in product_dict:
+            # Extract only digits, commas, and dots
+            price_str = re.sub(r'[^\d,.]', '', product_dict['price'])
+            # Replace comma with dot for decimal separator
+            price_str = price_str.replace(',', '.')
+            try:
+                price = float(price_str)
+                if price <= 0:
+                    logger.warning(f"Invalid price for {product_dict.get('model_code', 'UNKNOWN')}: {price}")
+            except:
+                logger.warning(f"Price parsing failed for {product_dict.get('model_code', 'UNKNOWN')}: {product_dict.get('price', 'N/A')}")
         
-        return None
+        # Normalize fields
+        def normalize(text):
+            if not text:
+                return ""
+            return re.sub(r'[^\w\s-]', ' ', text.lower().strip())
+        
+        cursor.execute("""
+            INSERT INTO raw_pricelist_data (
+                model_code, malli, paketti, moottori, telamatto, 
+                kaynnistin, mittaristo, kevatoptiot, vari, price, currency,
+                price_list_id, brand, model_year, market, source_catalog_page,
+                extraction_timestamp, extraction_method, parser_version,
+                normalized_model_name, normalized_package_name, normalized_engine_spec,
+                normalized_telamatto, normalized_mittaristo
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            product_dict.get('model_code', ''),
+            product_dict.get('malli', ''),
+            product_dict.get('paketti', ''),
+            product_dict.get('moottori', ''),
+            product_dict.get('telamatto', ''),
+            product_dict.get('kaynnistin', ''),
+            product_dict.get('mittaristo', ''),
+            product_dict.get('kevatoptiot', ''),
+            product_dict.get('vari', ''),
+            price,
+            'EUR',
+            price_list_id,
+            'SKI-DOO',
+            2026,
+            'FINLAND',
+            page_num,
+            datetime.now().isoformat(),
+            'camelot_stream_direct',
+            self.config['parser_version'],
+            normalize(product_dict.get('malli', '')),
+            normalize(product_dict.get('paketti', '')),
+            normalize(product_dict.get('moottori', '')),
+            normalize(product_dict.get('telamatto', '')),
+            normalize(product_dict.get('mittaristo', ''))
+        ))
     
-    def _extract_column_mapping(self, df, header_row: int) -> Dict[str, int]:
-        """Extract column mapping from header row"""
-        mapping = {}
+    def _parse_raw_data(self) -> List[ProductData]:
+        """Parse raw extracted data into clean products"""
         
-        # Check both header row and the row below (might be split)
-        header_rows = [header_row]
-        if header_row + 1 < len(df):
-            header_rows.append(header_row + 1)
-        
-        for col_idx in range(len(df.columns)):
-            col_text = ""
-            for h_row in header_rows:
-                cell_value = df.iloc[h_row, col_idx]
-                if str(cell_value) != 'nan':
-                    col_text += str(cell_value) + " "
-            
-            col_text = col_text.strip()
-            
-            # Map Finnish headers to column indices
-            if 'Tuotenro' in col_text or 'nro' in col_text:
-                mapping['model_code'] = col_idx
-            elif 'Malli' in col_text:
-                mapping['malli'] = col_idx
-            elif 'Paketti' in col_text:
-                mapping['paketti'] = col_idx
-            elif 'Moottori' in col_text:
-                mapping['moottori'] = col_idx
-            elif 'Telamatto' in col_text:
-                mapping['telamatto'] = col_idx
-            elif 'Käynnistin' in col_text:
-                mapping['kaynnistin'] = col_idx
-            elif 'Mittaristo' in col_text:
-                mapping['mittaristo'] = col_idx
-            elif 'Kevätoptiot' in col_text or 'optiot' in col_text:
-                mapping['kevatoptiot'] = col_idx
-            elif 'Väri' in col_text:
-                mapping['vari'] = col_idx
-            elif 'Suositushinta' in col_text or 'ALV' in col_text:
-                mapping['price'] = col_idx
-        
-        return mapping
-    
-    def _extract_model_code(self, row_data: List, column_mapping: Dict[str, int]) -> Optional[str]:
-        """Extract model code from row if present"""
-        if 'model_code' not in column_mapping:
-            return None
-        
-        model_code_col = column_mapping['model_code']
-        if model_code_col < len(row_data):
-            model_code = str(row_data[model_code_col]).strip()
-            
-            # Check if this looks like a model code (4 uppercase letters)
-            if re.match(r'^[A-Z]{4}$', model_code):
-                return model_code
-        
-        return None
-    
-    def _extract_product_data(self, row_data: List, column_mapping: Dict[str, int]) -> Dict[str, str]:
-        """Extract all product data from a row"""
-        product = {}
-        
-        for field, col_idx in column_mapping.items():
-            if col_idx < len(row_data):
-                value = str(row_data[col_idx]).strip()
-                if value and value != 'nan':
-                    product[field] = value
-        
-        return product
-    
-    def _merge_continuation_row(self, current_product: Dict, row_data: List, column_mapping: Dict[str, int]):
-        """Merge continuation row data (for multi-row specifications)"""
-        for field, col_idx in column_mapping.items():
-            if col_idx < len(row_data):
-                value = str(row_data[col_idx]).strip()
-                if value and value != 'nan':
-                    if field in current_product:
-                        # Append to existing value
-                        current_product[field] += " " + value
-                    else:
-                        # Set new value
-                        current_product[field] = value
-    
-    def _create_product_data(self, product_dict: Dict, source_path: Path, table_number: int) -> Optional[ProductData]:
-        """Create ProductData object from extracted dictionary"""
-        try:
-            # Parse price
-            price = 0.0
-            if 'price' in product_dict:
-                price_str = re.sub(r'[^\d,.]', '', product_dict['price'])
-                price_str = price_str.replace(',', '.')
-                try:
-                    price = float(price_str)
-                except:
-                    logger.warning(f"Could not parse price: {product_dict.get('price')}")
-            
-            # Create ProductData object
-            product = ProductData(
-                model_code=product_dict.get('model_code', ''),
-                brand='SKI-DOO',  # Default brand
-                year=2026,  # Default year
-                malli=product_dict.get('malli', '').strip(),
-                paketti=product_dict.get('paketti', '').strip(),
-                moottori=product_dict.get('moottori', '').strip(),
-                telamatto=product_dict.get('telamatto', '').strip(),
-                kaynnistin=product_dict.get('kaynnistin', '').strip(),
-                mittaristo=product_dict.get('mittaristo', '').strip(),
-                kevatoptiot=product_dict.get('kevatoptiot', '').strip(),
-                vari=product_dict.get('vari', '').strip(),
-                price=price,
-                currency='EUR',
-                market='FINLAND',
-                extraction_metadata={
-                    'extractor': 'PDFExtractor_Camelot',
-                    'extraction_method': 'camelot_stream',
-                    'source_file': str(source_path),
-                    'source_page': table_number,
-                    'extracted_at': datetime.now().isoformat(),
-                    'parser_version': self.config['parser_version']
-                }
-            )
-            
-            return product
-            
-        except Exception as e:
-            logger.error(f"Error creating product data: {e}")
-            return None
-    
-    def _save_to_database(self, products: List[ProductData], source_path: Path):
-        """Save extracted products to raw_pricelist_data table"""
-        if not products:
-            return
+        logger.info("Parsing raw data into clean products")
         
         try:
             db_path = self.config['db_path']
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
-            price_list_id = f"{source_path.stem}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            # Create raw_pricelist_data_parsed table
+            cursor.execute("DROP TABLE IF EXISTS raw_pricelist_data_parsed")
+            cursor.execute("""
+                CREATE TABLE raw_pricelist_data_parsed (
+                    model_code TEXT NOT NULL,
+                    malli TEXT,
+                    paketti TEXT,
+                    moottori TEXT,
+                    telamatto TEXT,
+                    kaynnistin TEXT,
+                    mittaristo TEXT,
+                    kevatoptiot TEXT,
+                    vari TEXT,
+                    price REAL,
+                    currency TEXT DEFAULT 'EUR',
+                    price_list_id TEXT,
+                    brand TEXT NOT NULL,
+                    model_year INTEGER,
+                    market TEXT DEFAULT 'FINLAND',
+                    source_catalog_page INTEGER,
+                    extraction_timestamp TEXT,
+                    extraction_method TEXT,
+                    parser_version TEXT,
+                    normalized_model_name TEXT,
+                    normalized_package_name TEXT,
+                    normalized_engine_spec TEXT,
+                    normalized_telamatto TEXT,
+                    normalized_mittaristo TEXT,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
             
-            for product in products:
-                # Generate unique ID
-                record_id = str(uuid.uuid4())
+            # Read all raw data ordered by page and creation time
+            cursor.execute("""
+                SELECT * FROM raw_pricelist_data 
+                ORDER BY source_catalog_page, created_at
+            """)
+            
+            raw_records = cursor.fetchall()
+            column_names = [description[0] for description in cursor.description]
+            
+            logger.info(f"Processing {len(raw_records)} raw records...")
+            
+            current_product = None
+            parsed_count = 0
+            
+            for record in raw_records:
+                record_dict = dict(zip(column_names, record))
+                model_code = record_dict.get('model_code', '').strip()
                 
-                # Create normalized fields
-                normalized_model = self._normalize_text(product.malli or '')
-                normalized_package = self._normalize_text(product.paketti or '')
-                normalized_engine = self._normalize_text(product.moottori or '')
-                normalized_telamatto = self._normalize_text(product.telamatto or '')
-                normalized_mittaristo = self._normalize_text(product.mittaristo or '')
+                # Check if this is a new product (4-character model code)
+                if model_code and len(model_code) == 4:
+                    # Save previous product if exists
+                    if current_product:
+                        self._save_parsed_product(cursor, current_product)
+                        parsed_count += 1
+                    
+                    # Start new product
+                    current_product = record_dict.copy()
+                    logger.debug(f"New product: {model_code}")
                 
-                cursor.execute("""
-                    INSERT INTO raw_pricelist_data (
-                        id, model_code, malli, paketti, moottori, telamatto, 
-                        kaynnistin, mittaristo, kevatoptiot, vari, price, currency,
-                        price_list_id, brand, model_year, market, source_catalog_page,
-                        extraction_timestamp, extraction_method, parser_version,
-                        normalized_model_name, normalized_package_name, normalized_engine_spec,
-                        normalized_telamatto, normalized_mittaristo
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    record_id,
-                    product.model_code,
-                    product.malli,
-                    product.paketti,
-                    product.moottori,
-                    product.telamatto,
-                    product.kaynnistin,
-                    product.mittaristo,
-                    product.kevatoptiot,
-                    product.vari,
-                    product.price,
-                    product.currency,
-                    price_list_id,
-                    product.brand,
-                    product.year,
-                    product.market,
-                    product.extraction_metadata.get('source_page'),
-                    datetime.now().isoformat(),
-                    'camelot_stream',
-                    self.config['parser_version'],
-                    normalized_model,
-                    normalized_package,
-                    normalized_engine,
-                    normalized_telamatto,
-                    normalized_mittaristo
-                ))
+                elif current_product and model_code and not self._is_header_row(model_code):
+                    # This is a continuation row with data - merge it
+                    logger.debug(f"Merging continuation: {model_code}")
+                    self._merge_continuation_data(current_product, record_dict)
+                
+                elif current_product and self._has_useful_data(record_dict):
+                    # Row with no model code but has useful data - merge it
+                    logger.debug(f"Merging no-code row")
+                    self._merge_continuation_data(current_product, record_dict)
+            
+            # Don't forget the last product
+            if current_product:
+                self._save_parsed_product(cursor, current_product)
+                parsed_count += 1
             
             conn.commit()
+            
+            # Convert to ProductData objects
+            cursor.execute("SELECT * FROM raw_pricelist_data_parsed ORDER BY model_code")
+            parsed_records = cursor.fetchall()
+            column_names = [description[0] for description in cursor.description]
+            
+            products = []
+            for record in parsed_records:
+                record_dict = dict(zip(column_names, record))
+                
+                product = ProductData(
+                    model_code=record_dict.get('model_code', ''),
+                    brand=record_dict.get('brand', 'SKI-DOO'),
+                    year=record_dict.get('model_year', 2026),
+                    malli=record_dict.get('malli', ''),
+                    paketti=record_dict.get('paketti', ''),
+                    moottori=record_dict.get('moottori', ''),
+                    telamatto=record_dict.get('telamatto', ''),
+                    kaynnistin=record_dict.get('kaynnistin', ''),
+                    mittaristo=record_dict.get('mittaristo', ''),
+                    kevatoptiot=record_dict.get('kevatoptiot', ''),
+                    vari=record_dict.get('vari', ''),
+                    price=record_dict.get('price', 0.0),
+                    currency=record_dict.get('currency', 'EUR'),
+                    market=record_dict.get('market', 'FINLAND'),
+                    extraction_metadata={
+                        'extractor': 'PDFExtractor',
+                        'extraction_method': record_dict.get('extraction_method', 'camelot_stream'),
+                        'price_list_id': record_dict.get('price_list_id', ''),
+                        'source_page': record_dict.get('source_catalog_page', 0),
+                        'extracted_at': record_dict.get('extraction_timestamp', ''),
+                        'parser_version': record_dict.get('parser_version', '')
+                    }
+                )
+                products.append(product)
+            
             conn.close()
             
-            logger.info(f"Saved {len(products)} products to database")
+            logger.info(f"PARSING COMPLETED! Parsed products: {parsed_count}")
+            return products
             
         except Exception as e:
-            logger.error(f"Error saving to database: {e}")
+            logger.error(f"PARSING ERROR: {e}")
             raise
     
-    def _normalize_text(self, text: str) -> str:
-        """Normalize text for matching purposes"""
-        if not text:
-            return ""
+    def _is_header_row(self, model_code: str) -> bool:
+        """Check if this is a header/category row"""
+        headers = ['Mid-sized', 'Trail', 'Deep Snow', 'Utility', 'Crossover']
+        return model_code in headers
+    
+    def _has_useful_data(self, record_dict: Dict[str, Any]) -> bool:
+        """Check if record has any useful data to merge"""
+        useful_fields = ['malli', 'paketti', 'moottori', 'telamatto', 'kaynnistin', 'mittaristo', 'vari']
+        return any(record_dict.get(field) for field in useful_fields)
+    
+    def _merge_continuation_data(self, current_product: Dict[str, Any], new_record: Dict[str, Any]):
+        """Merge continuation row data into current product"""
+        merge_fields = ['malli', 'paketti', 'moottori', 'telamatto', 'kaynnistin', 'mittaristo', 'kevatoptiot', 'vari']
         
-        # Convert to lowercase, remove extra spaces, special chars
-        normalized = re.sub(r'[^\w\s-]', ' ', text.lower())
-        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        for field in merge_fields:
+            new_value = str(new_record.get(field, '')).strip()
+            if new_value and new_value != 'nan':
+                current_value = str(current_product.get(field, '')).strip()
+                if current_value and current_value != new_value:
+                    # Append new value
+                    current_product[field] = f"{current_value} {new_value}"
+                elif not current_value:
+                    # Set new value
+                    current_product[field] = new_value
+    
+    def _save_parsed_product(self, cursor, product: Dict[str, Any]):
+        """Save parsed product to database"""
         
-        return normalized
+        def normalize(text):
+            if not text:
+                return ""
+            return re.sub(r'[^\w\s-]', ' ', str(text).lower().strip())
+        
+        cursor.execute("""
+            INSERT INTO raw_pricelist_data_parsed (
+                model_code, malli, paketti, moottori, telamatto, 
+                kaynnistin, mittaristo, kevatoptiot, vari, price, currency,
+                price_list_id, brand, model_year, market, source_catalog_page,
+                extraction_timestamp, extraction_method, parser_version,
+                normalized_model_name, normalized_package_name, normalized_engine_spec,
+                normalized_telamatto, normalized_mittaristo
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            product.get('model_code', ''),
+            product.get('malli', ''),
+            product.get('paketti', ''),
+            product.get('moottori', ''),
+            product.get('telamatto', ''),
+            product.get('kaynnistin', ''),
+            product.get('mittaristo', ''),
+            product.get('kevatoptiot', ''),
+            product.get('vari', ''),
+            product.get('price', 0),
+            'EUR',
+            product.get('price_list_id', ''),
+            product.get('brand', 'SKI-DOO'),
+            product.get('model_year', 2026),
+            'FINLAND',
+            product.get('source_catalog_page', 0),
+            datetime.now().isoformat(),
+            'camelot_parsed',
+            '2.0_parsed',
+            normalize(product.get('malli', '')),
+            normalize(product.get('paketti', '')),
+            normalize(product.get('moottori', '')),
+            normalize(product.get('telamatto', '')),
+            normalize(product.get('mittaristo', ''))
+        ))
     
     def get_stats(self) -> Dict[str, Any]:
         """Get extraction statistics"""
@@ -390,5 +457,5 @@ class PDFExtractor(BaseExtractor):
             'success_rate': self.stats.success_rate,
             'processing_time': self.stats.processing_time,
             'stage': self.stats.stage.value if hasattr(self.stats.stage, 'value') else str(self.stats.stage),
-            'extraction_method': 'camelot_stream'
+            'extraction_method': 'camelot_stream_direct'
         }
