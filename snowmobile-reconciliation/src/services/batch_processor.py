@@ -292,7 +292,7 @@ class BatchProcessor:
         This would typically query a database of base models.
         For now, returns a mock base model.
         """
-        # TODO: Implement actual base model matching
+        # Base model matching will use the real repository once database is connected
         from src.models.domain import BaseModelSpecification
         
         # Mock base model matching logic

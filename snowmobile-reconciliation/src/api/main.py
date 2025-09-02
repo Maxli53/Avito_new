@@ -23,6 +23,20 @@ from src.config.settings import get_settings, validate_settings
 settings = get_settings()
 
 
+# Database dependency injection
+async def get_database_session():
+    """Get async database session for dependency injection"""
+    async with app.state.async_session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -38,13 +52,59 @@ async def lifespan(app: FastAPI):
         validate_settings()
         
         # Initialize database connection
-        # TODO: Initialize database pool
+        from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+        from sqlalchemy.orm import sessionmaker
+        from src.models.database import Base
+        
+        # Create async database engine
+        database_url = settings.database_url
+        if database_url.startswith("postgresql://"):
+            database_url = database_url.replace("postgresql://", "postgresql+asyncpg://")
+        
+        engine = create_async_engine(
+            database_url,
+            echo=settings.debug_mode,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+        )
+        
+        # Create async session maker
+        async_session_maker = sessionmaker(
+            engine, class_=AsyncSession, expire_on_commit=False
+        )
+        
+        # Create database tables if they don't exist
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        
+        # Store database components in app state
+        app.state.db_engine = engine
+        app.state.async_session_maker = async_session_maker
         
         # Initialize Claude API client
-        # TODO: Initialize Claude client
+        from src.services.claude_enrichment import ClaudeEnrichmentService
+        from src.models.domain import PipelineConfig
+        config = PipelineConfig()
+        claude_service = ClaudeEnrichmentService(config.claude)
         
         # Warm up pipeline stages
-        # TODO: Pre-load pipeline components
+        from src.pipeline.inheritance_pipeline import InheritancePipeline
+        from src.repositories.product_repository import ProductRepository
+        from src.repositories.base_model_repository import BaseModelRepository
+        from src.pipeline.validation.multi_layer_validator import MultiLayerValidator
+        from src.services.pdf_extraction_service import PDFProcessingService
+        
+        # Pre-initialize pipeline components for faster request processing
+        # Repositories will be created per-request with database sessions
+        # This initialization creates the infrastructure for real database operations
+        validator = MultiLayerValidator(config.pipeline)
+        pdf_service = PDFProcessingService(claude_service)
+        
+        # Store in app state for reuse
+        app.state.claude_service = claude_service
+        app.state.config = config
+        app.state.validator = validator
+        app.state.pdf_service = pdf_service
         
         print("✅ Service started successfully")
         
@@ -58,8 +118,23 @@ async def lifespan(app: FastAPI):
     print("🛑 Shutting down service...")
     
     # Cleanup resources
-    # TODO: Close database connections
-    # TODO: Flush any pending logs
+    try:
+        # Close Claude service connections if any
+        if hasattr(app.state, 'claude_service'):
+            claude_service = app.state.claude_service
+            if hasattr(claude_service, 'close'):
+                await claude_service.close()
+        
+        # Close database connections
+        if hasattr(app.state, 'db_engine'):
+            await app.state.db_engine.dispose()
+        
+        # Flush any pending logs
+        import logging
+        logging.shutdown()
+        
+    except Exception as e:
+        print(f"⚠️ Error during shutdown: {e}")
     
     print("✅ Service shut down gracefully")
 

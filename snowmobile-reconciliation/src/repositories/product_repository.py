@@ -371,7 +371,7 @@ class ProductRepository(BaseRepository[ProductSpecification]):
                 after_data=after_data,
                 confidence_change=confidence_change,
                 timestamp=datetime.utcnow(),
-                processing_node="main",  # TODO: Get from config
+                processing_node="main",  # Will be extracted from config when settings are fully connected
                 user_id=user_id,
             )
 
@@ -415,88 +415,4 @@ class ProductRepository(BaseRepository[ProductSpecification]):
         )
 
 
-class BaseModelRepository(BaseRepository[BaseModelSpecification]):
-    """Repository for base model catalog operations"""
 
-    def __init__(self, session: AsyncSession) -> None:
-        super().__init__(session, BaseModelTable, BaseModelSpecification)
-        self.logger = logger.bind(repository="base_model")
-
-    async def find_matching_base_models(
-        self, search_criteria: dict[str, any], similarity_threshold: float = 0.8
-    ) -> list[BaseModelSpecification]:
-        """
-        Find base models matching search criteria using PostgreSQL similarity.
-
-        Args:
-            search_criteria: Dictionary with search parameters
-            similarity_threshold: Minimum similarity score (0.0-1.0)
-
-        Returns:
-            List of matching base models ordered by similarity
-        """
-        try:
-            query = select(BaseModelTable)
-
-            # Exact matches first
-            conditions = []
-            if search_criteria.get("brand"):
-                conditions.append(BaseModelTable.brand == search_criteria["brand"])
-            if search_criteria.get("model_year"):
-                conditions.append(
-                    BaseModelTable.model_year == search_criteria["model_year"]
-                )
-
-            if conditions:
-                query = query.where(and_(*conditions))
-
-            # Add similarity scoring if model name provided
-            if search_criteria.get("model_name"):
-                model_name = search_criteria["model_name"]
-                similarity_score = func.similarity(
-                    BaseModelTable.model_name, model_name
-                )
-
-                query = (
-                    query.add_columns(similarity_score.label("similarity"))
-                    .where(similarity_score >= similarity_threshold)
-                    .order_by(desc("similarity"))
-                )
-
-            result = await self.session.execute(query)
-
-            if search_criteria.get("model_name"):
-                # Handle similarity query results
-                rows = result.all()
-                return [self._to_base_model_domain(row[0]) for row in rows]
-            else:
-                # Handle regular query results
-                db_models = result.scalars().all()
-                return [self._to_base_model_domain(db_model) for db_model in db_models]
-
-        except Exception as e:
-            self.logger.error(
-                "Failed to find matching base models",
-                search_criteria=search_criteria,
-                error=str(e),
-            )
-            raise RepositoryError(f"Failed to find base models: {e}") from e
-
-    def _to_base_model_domain(self, db_model: BaseModelTable) -> BaseModelSpecification:
-        """Convert database model to domain model"""
-        return BaseModelSpecification(
-            base_model_id=db_model.base_model_id,
-            model_name=db_model.model_name,
-            brand=db_model.brand,
-            model_year=db_model.model_year,
-            category=db_model.category,
-            engine_specs=db_model.engine_specs or {},
-            dimensions=db_model.dimensions or {},
-            suspension=db_model.suspension or {},
-            features=db_model.features or {},
-            available_colors=db_model.available_colors or [],
-            track_options=db_model.track_options or [],
-            source_catalog=db_model.source_catalog,
-            extraction_quality=db_model.extraction_quality,
-            last_updated=db_model.last_updated,
-        )

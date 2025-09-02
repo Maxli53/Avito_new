@@ -209,6 +209,112 @@ class ClaudeEnrichmentService:
 
             return ClaudeResponse(success=False, error_message=f"Unexpected error: {e}")
 
+    async def enrich_product_data(
+        self, model_code: str, brand: str, price: float, model_year: int, **kwargs
+    ) -> Optional[dict[str, Any]]:
+        """
+        Enrich product data with semantic analysis and specifications.
+        
+        Args:
+            model_code: Product model code
+            brand: Product brand
+            price: Product price
+            model_year: Model year
+            **kwargs: Additional product attributes
+            
+        Returns:
+            Enriched product data or None if enrichment fails
+        """
+        request_logger = self.logger.bind(
+            operation="product_enrichment", 
+            model_code=model_code, 
+            brand=brand,
+            model_year=model_year
+        )
+        
+        request_logger.info("Starting product data enrichment")
+        
+        # Build enrichment prompt
+        prompt = f"""
+        Snowmobile Product Data Enrichment:
+        
+        Product Information:
+        - Model Code: {model_code}
+        - Brand: {brand}
+        - Price: {price}
+        - Model Year: {model_year}
+        - Additional Data: {json.dumps(kwargs, indent=2)}
+        
+        Task: Enhance this product with detailed specifications, categorization, and market positioning.
+        
+        Provide enrichment including:
+        1. Model name interpretation and full product name
+        2. Category classification (Trail, Crossover, Deep Snow, etc.)
+        3. Engine specifications (displacement, type, power)
+        4. Track specifications (length, width, lug pattern)
+        5. Key features and technology
+        6. Market positioning and target audience
+        
+        Respond with JSON:
+        {{
+            "model_name": "Full interpreted model name",
+            "category": "Product category",
+            "specifications": {{
+                "engine": {{
+                    "type": "Engine type",
+                    "displacement": displacement_cc,
+                    "power_hp": estimated_power
+                }},
+                "track": {{
+                    "length_mm": track_length,
+                    "width_mm": track_width,
+                    "lug_height_mm": lug_height
+                }},
+                "dimensions": {{
+                    "length_mm": overall_length,
+                    "width_mm": overall_width,
+                    "height_mm": overall_height
+                }},
+                "features": ["key", "features", "list"]
+            }},
+            "market_positioning": "Market position description",
+            "confidence": 0.85,
+            "reasoning": "Explanation of enrichment decisions"
+        }}
+        """
+        
+        try:
+            response = await self._call_claude_api(
+                prompt=prompt,
+                system_message="You are an expert in snowmobile specifications and market analysis. Provide accurate, detailed product enrichment based on model codes and brand knowledge.",
+                expected_format="json"
+            )
+            
+            if not response.success:
+                request_logger.error("Product enrichment failed", error=response.error_message)
+                return None
+            
+            # Parse enrichment response
+            try:
+                enriched_data = json.loads(response.content)
+                
+                request_logger.info(
+                    "Product enrichment successful",
+                    confidence=enriched_data.get('confidence', 0.0),
+                    tokens_used=response.tokens_used,
+                    cost=float(response.cost)
+                )
+                
+                return enriched_data
+                
+            except json.JSONDecodeError as e:
+                request_logger.error("Failed to parse enrichment response", error=str(e))
+                return None
+                
+        except Exception as e:
+            request_logger.error("Unexpected error in product enrichment", error=str(e))
+            return None
+
     async def batch_enrich_products(
         self, products: list[dict[str, Any]], enrichment_type: str = "complete"
     ) -> list[ClaudeResponse]:
@@ -594,8 +700,8 @@ class ClaudeEnrichmentService:
         input_cost_per_million = Decimal("0.25")  # $0.25 per 1M input tokens
         output_cost_per_million = Decimal("1.25")  # $1.25 per 1M output tokens
 
-        input_cost = (input_tokens / 1_000_000) * input_cost_per_million
-        output_cost = (output_tokens / 1_000_000) * output_cost_per_million
+        input_cost = (Decimal(str(input_tokens)) / Decimal("1000000")) * input_cost_per_million
+        output_cost = (Decimal(str(output_tokens)) / Decimal("1000000")) * output_cost_per_million
 
         return input_cost + output_cost
 

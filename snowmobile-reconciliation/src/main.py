@@ -24,7 +24,8 @@ from src.models.domain import (
 )
 from src.pipeline.inheritance_pipeline import InheritancePipeline
 from src.pipeline.validation.multi_layer_validator import MultiLayerValidator
-from src.repositories.product_repository import BaseModelRepository, ProductRepository
+from src.repositories.product_repository import ProductRepository
+from src.repositories.base_model_repository import BaseModelRepository
 from src.services.claude_enrichment import ClaudeEnrichmentService
 
 # Configure structured logging
@@ -158,6 +159,8 @@ async def initialize_services(settings) -> None:
             pipeline = InheritancePipeline(
                 config=settings.pipeline,
                 product_repository=product_repo,
+                base_model_repository=base_model_repo,
+                claude_service=claude_service,
                 validator=validator,
             )
 

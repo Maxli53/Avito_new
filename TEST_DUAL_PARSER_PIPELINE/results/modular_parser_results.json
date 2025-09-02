@@ -1,0 +1,16 @@
+{
+  "processing_statistics": {
+    "total_processing_time_seconds": 0.832076,
+    "catalog_vehicles_extracted": 77,
+    "price_entries_processed": 64,
+    "successful_matches": 0,
+    "failed_matches": 64,
+    "match_success_rate": 0.0,
+    "extraction_timestamp": "2025-09-02 11:09:06.759819"
+  },
+  "successful_matches_count": 0,
+  "failed_matches_count": 64,
+  "catalog_vehicles_count": 77,
+  "matching_methods_distribution": {},
+  "extraction_timestamp": "2025-09-02T11:09:06.759819"
+}

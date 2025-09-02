@@ -1,0 +1,21 @@
+{
+  "bert_enhanced_pipeline": true,
+  "processing_statistics": {
+    "total_processing_time_seconds": 1.766466,
+    "catalog_vehicles_extracted": 77,
+    "price_entries_processed": 64,
+    "successful_matches": 63,
+    "failed_matches": 1,
+    "match_success_rate": 0.984375,
+    "extraction_timestamp": "2025-09-02 12:08:53.402625"
+  },
+  "successful_matches_count": 63,
+  "failed_matches_count": 1,
+  "match_success_rate": 0.984375,
+  "matching_methods_distribution": {
+    "EXACT": 63
+  },
+  "processing_time_seconds": 1.766466,
+  "improvement_vs_original": 0.984375,
+  "extraction_timestamp": "2025-09-02T12:08:53.402625"
+}
