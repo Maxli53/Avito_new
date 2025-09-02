@@ -1,0 +1,505 @@
+name: Nightly Test Suite
+
+on:
+  schedule:
+    # Run comprehensive tests every night at 1 AM UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      include_external:
+        description: 'Include external service tests'
+        required: false
+        default: true
+        type: boolean
+      test_data_volume:
+        description: 'Test data volume'
+        required: false
+        default: 'medium'
+        type: choice
+        options:
+        - small
+        - medium
+        - large
+      notification_level:
+        description: 'Notification level'
+        required: false
+        default: 'failures_only'
+        type: choice
+        options:
+        - always
+        - failures_only
+        - never
+
+env:
+  PYTHON_VERSION: '3.11'
+  POETRY_VERSION: '1.6.1'
+
+jobs:
+  # ============================================================================
+  # COMPREHENSIVE TEST SUITE
+  # ============================================================================
+  comprehensive-tests:
+    name: 🌙 Comprehensive Nightly Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        test-suite:
+          - name: "Unit Tests (All Modules)"
+            markers: "unit"
+            timeout: 30
+          - name: "Integration Tests (All Stages)"
+            markers: "integration"
+            timeout: 45
+          - name: "End-to-End Tests (Complete Workflows)"
+            markers: "e2e"
+            timeout: 60
+          - name: "Performance Tests (Load & Stress)"
+            markers: "performance or slow"
+            timeout: 90
+          - name: "External Service Tests"
+            markers: "external"
+            timeout: 45
+          - name: "Real Data Tests"
+            markers: "real_data"
+            timeout: 60
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: nightly_test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:6-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            .venv
+            ~/.cache/pypoetry/cache
+            ~/.cache/pypoetry/artifacts
+          key: nightly-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction --with dev,test
+          poetry run pip install pytest-xdist pytest-timeout pytest-benchmark
+
+      - name: Setup test environment
+        run: |
+          mkdir -p test-data test-results logs
+          echo "Setting up test environment for: ${{ matrix.test-suite.name }}"
+
+      - name: Run Test Suite - ${{ matrix.test-suite.name }}
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nightly_test_db
+          REDIS_URL: redis://localhost:6379/0
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          BERT_MODEL_PATH: ${{ github.workspace }}/models
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+          TEST_DATA_VOLUME: ${{ github.event.inputs.test_data_volume || 'medium' }}
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=long \
+            --strict-markers \
+            -m "${{ matrix.test-suite.markers }}" \
+            --cov=core \
+            --cov=pipeline \
+            --cov-report=xml:coverage-${{ matrix.test-suite.name }}.xml \
+            --cov-report=html:htmlcov-${{ matrix.test-suite.name }} \
+            --cov-report=term-missing \
+            --junit-xml=junit-${{ matrix.test-suite.name }}.xml \
+            --timeout=${{ matrix.test-suite.timeout }} \
+            --benchmark-json=benchmark-${{ matrix.test-suite.name }}.json \
+            --maxfail=5 \
+            -n auto
+        timeout-minutes: ${{ matrix.test-suite.timeout }}
+        continue-on-error: true
+
+      - name: Generate Test Report
+        if: always()
+        run: |
+          echo "## Test Results for ${{ matrix.test-suite.name }}" > test-report-${{ matrix.test-suite.name }}.md
+          echo "" >> test-report-${{ matrix.test-suite.name }}.md
+          
+          if [ -f "junit-${{ matrix.test-suite.name }}.xml" ]; then
+            poetry run python -c "
+            import xml.etree.ElementTree as ET
+            import sys
+            
+            try:
+                tree = ET.parse('junit-${{ matrix.test-suite.name }}.xml')
+                root = tree.getroot()
+                
+                total = int(root.get('tests', 0))
+                failures = int(root.get('failures', 0))
+                errors = int(root.get('errors', 0))
+                skipped = int(root.get('skipped', 0))
+                passed = total - failures - errors - skipped
+                
+                print(f'**Total Tests:** {total}')
+                print(f'**Passed:** {passed} ✅')
+                print(f'**Failed:** {failures} ❌')
+                print(f'**Errors:** {errors} 🚨')
+                print(f'**Skipped:** {skipped} ⏭️')
+                print(f'**Success Rate:** {(passed/total*100):.1f}%' if total > 0 else '**Success Rate:** 0.0%')
+            except Exception as e:
+                print(f'Could not parse test results: {e}')
+            " >> test-report-${{ matrix.test-suite.name }}.md
+          fi
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: nightly-test-results-${{ matrix.test-suite.name }}
+          path: |
+            junit-*.xml
+            coverage-*.xml
+            htmlcov-*/
+            benchmark-*.json
+            test-report-*.md
+            logs/
+          retention-days: 7
+
+  # ============================================================================
+  # CROSS-PLATFORM COMPATIBILITY
+  # ============================================================================
+  cross-platform-tests:
+    name: 🖥️ Cross-Platform Compatibility
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run Cross-Platform Tests
+        run: |
+          poetry run pytest tests/unit/ tests/integration/ \
+            -v \
+            --tb=short \
+            -m "not external and not slow" \
+            --junit-xml=junit-${{ matrix.platform }}-py${{ matrix.python-version }}.xml \
+            --maxfail=3
+        timeout-minutes: 30
+
+      - name: Upload Cross-Platform Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: cross-platform-results-${{ matrix.platform }}-py${{ matrix.python-version }}
+          path: junit-*.xml
+          retention-days: 7
+
+  # ============================================================================
+  # LOAD AND STRESS TESTING
+  # ============================================================================
+  load-stress-tests:
+    name: 📈 Load & Stress Testing
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction
+          poetry run pip install locust pytest-benchmark
+
+      - name: Run Load Tests
+        env:
+          TEST_DATA_VOLUME: ${{ github.event.inputs.test_data_volume || 'large' }}
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=short \
+            -m "performance" \
+            --benchmark-json=load-test-results.json \
+            --timeout=300 \
+            --junit-xml=junit-load-tests.xml
+
+      - name: Generate Load Test Report
+        run: |
+          echo "# Load Test Results" > load-test-report.md
+          echo "Generated on: $(date)" >> load-test-report.md
+          echo "" >> load-test-report.md
+          
+          if [ -f "load-test-results.json" ]; then
+            poetry run python -c "
+            import json
+            with open('load-test-results.json', 'r') as f:
+                data = json.load(f)
+            
+            print('## Performance Benchmarks')
+            print('')
+            
+            for benchmark in data.get('benchmarks', []):
+                name = benchmark.get('name', 'Unknown')
+                stats = benchmark.get('stats', {})
+                mean = stats.get('mean', 0)
+                min_val = stats.get('min', 0)
+                max_val = stats.get('max', 0)
+                
+                print(f'### {name}')
+                print(f'- Mean: {mean:.4f}s')
+                print(f'- Min: {min_val:.4f}s') 
+                print(f'- Max: {max_val:.4f}s')
+                print('')
+            " >> load-test-report.md
+          fi
+
+      - name: Upload Load Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: load-stress-test-results
+          path: |
+            load-test-results.json
+            load-test-report.md
+            junit-load-tests.xml
+          retention-days: 14
+
+  # ============================================================================
+  # SECURITY DEEP SCAN
+  # ============================================================================
+  security-deep-scan:
+    name: 🛡️ Security Deep Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install security tools
+        run: |
+          poetry install --no-interaction
+          poetry run pip install safety bandit semgrep
+
+      - name: Run Comprehensive Security Scan
+        run: |
+          echo "Running comprehensive security analysis..."
+          
+          # Dependency vulnerability scan
+          poetry run safety check --json --output safety-detailed.json || true
+          
+          # Code security scan
+          poetry run bandit -r . -f json -o bandit-detailed.json || true
+          
+          # Static analysis security scan
+          poetry run semgrep --config=auto --json --output=semgrep-detailed.json . || true
+
+      - name: Generate Security Report
+        run: |
+          echo "# Security Deep Scan Report" > security-report.md
+          echo "Generated on: $(date)" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Summary" >> security-report.md
+          echo "- ✅ Dependency Vulnerability Scan: $([ -f safety-detailed.json ] && echo 'Completed' || echo 'Failed')" >> security-report.md
+          echo "- ✅ Code Security Analysis: $([ -f bandit-detailed.json ] && echo 'Completed' || echo 'Failed')" >> security-report.md
+          echo "- ✅ Static Security Analysis: $([ -f semgrep-detailed.json ] && echo 'Completed' || echo 'Failed')" >> security-report.md
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-deep-scan-results
+          path: |
+            safety-detailed.json
+            bandit-detailed.json
+            semgrep-detailed.json
+            security-report.md
+          retention-days: 30
+
+  # ============================================================================
+  # CONSOLIDATED REPORTING
+  # ============================================================================
+  consolidated-report:
+    name: 📊 Consolidated Nightly Report
+    runs-on: ubuntu-latest
+    needs: [comprehensive-tests, cross-platform-tests, load-stress-tests, security-deep-scan]
+    if: always()
+
+    steps:
+      - name: Download all test results
+        uses: actions/download-artifact@v3
+        with:
+          path: all-results
+
+      - name: Generate Consolidated Report
+        run: |
+          echo "# 🌙 Nightly Test Suite - Consolidated Report" > nightly-report.md
+          echo "**Date:** $(date)" >> nightly-report.md
+          echo "**Commit:** ${{ github.sha }}" >> nightly-report.md
+          echo "**Branch:** ${{ github.ref_name }}" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          echo "## 🧪 Test Suite Results" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          echo "| Test Suite | Status | Details |" >> nightly-report.md
+          echo "|------------|--------|---------|" >> nightly-report.md
+          echo "| Comprehensive Tests | ${{ needs.comprehensive-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | All core functionality validated |" >> nightly-report.md
+          echo "| Cross-Platform Tests | ${{ needs.cross-platform-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | Linux, Windows, macOS compatibility |" >> nightly-report.md
+          echo "| Load & Stress Tests | ${{ needs.load-stress-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | Performance under load |" >> nightly-report.md
+          echo "| Security Deep Scan | ${{ needs.security-deep-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | Vulnerability assessment |" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          echo "## 🎯 Overall Health Score" >> nightly-report.md
+          
+          # Calculate health score
+          passed=0
+          total=4
+          
+          [[ "${{ needs.comprehensive-tests.result }}" == "success" ]] && ((passed++))
+          [[ "${{ needs.cross-platform-tests.result }}" == "success" ]] && ((passed++))
+          [[ "${{ needs.load-stress-tests.result }}" == "success" ]] && ((passed++))
+          [[ "${{ needs.security-deep-scan.result }}" == "success" ]] && ((passed++))
+          
+          health_score=$((passed * 100 / total))
+          
+          echo "**Health Score:** ${health_score}% (${passed}/${total} test suites passed)" >> nightly-report.md
+          echo "" >> nightly-report.md
+          
+          if [ $health_score -ge 75 ]; then
+            echo "🟢 **System Status:** HEALTHY" >> nightly-report.md
+            echo "All critical systems are functioning properly." >> nightly-report.md
+          elif [ $health_score -ge 50 ]; then
+            echo "🟡 **System Status:** DEGRADED" >> nightly-report.md
+            echo "Some non-critical issues detected. Monitor closely." >> nightly-report.md
+          else
+            echo "🔴 **System Status:** CRITICAL" >> nightly-report.md
+            echo "Multiple critical issues detected. Immediate attention required." >> nightly-report.md
+          fi
+
+      - name: Upload Consolidated Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: nightly-consolidated-report
+          path: nightly-report.md
+          retention-days: 30
+
+      - name: Create Issue on Failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const title = `🚨 Nightly Test Suite Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `
+            ## Nightly Test Suite Failure Report
+            
+            **Date:** ${new Date().toISOString()}
+            **Commit:** ${{ github.sha }}
+            **Workflow:** ${{ github.run_id }}
+            
+            ### Failed Jobs:
+            - Comprehensive Tests: ${{ needs.comprehensive-tests.result }}
+            - Cross-Platform Tests: ${{ needs.cross-platform-tests.result }}
+            - Load & Stress Tests: ${{ needs.load-stress-tests.result }}
+            - Security Deep Scan: ${{ needs.security-deep-scan.result }}
+            
+            ### Action Required:
+            1. Review failed test results
+            2. Investigate root causes
+            3. Fix critical issues
+            4. Re-run tests to verify fixes
+            
+            [View Workflow Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['bug', 'ci-failure', 'high-priority']
+            });

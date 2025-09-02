@@ -1,0 +1,118 @@
+# Codecov Configuration for Avito Pipeline Testing
+# Comprehensive coverage configuration for production-ready quality gates
+
+codecov:
+  require_ci_to_pass: true
+  notify:
+    after_n_builds: 3
+    wait_for_ci: true
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+  status:
+    project:
+      default:
+        target: 90%
+        threshold: 2%
+        if_no_uploads: error
+        if_not_found: success
+        if_ci_failed: error
+      
+      unit-tests:
+        target: 95%
+        threshold: 1%
+        paths:
+          - "tests/unit/"
+        flags:
+          - unit-tests
+      
+      integration-tests:
+        target: 85%
+        threshold: 3%
+        paths:
+          - "tests/integration/"
+        flags:
+          - integration-tests
+      
+      e2e-tests:
+        target: 80%
+        threshold: 5%
+        paths:
+          - "tests/e2e/"
+        flags:
+          - e2e-tests
+
+    patch:
+      default:
+        target: 80%
+        threshold: 10%
+        if_no_uploads: success
+        if_not_found: success
+        if_ci_failed: error
+
+    changes:
+      default:
+        target: 90%
+        threshold: 5%
+        if_no_uploads: error
+        if_not_found: success
+        if_ci_failed: error
+
+flags:
+  unit-tests:
+    paths:
+      - core/
+      - pipeline/
+    carryforward: false
+    
+  integration-tests:
+    paths:
+      - core/
+      - pipeline/
+      - tests/integration/
+    carryforward: false
+    
+  e2e-tests:
+    paths:
+      - core/
+      - pipeline/
+      - tests/e2e/
+    carryforward: false
+    
+  combined:
+    paths:
+      - core/
+      - pipeline/
+    carryforward: false
+
+ignore:
+  - "tests/"
+  - "docs/"
+  - "scripts/"
+  - "*.md"
+  - "*.txt"
+  - "*.yml"
+  - "*.yaml"
+  - ".github/"
+  - "__pycache__/"
+  - "*.pyc"
+  - "conftest.py"
+  - "setup.py"
+  - "**/test_*.py"
+  - "**/*_test.py"
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+  branches:
+    - main
+    - develop
+
+github_checks:
+  annotations: true

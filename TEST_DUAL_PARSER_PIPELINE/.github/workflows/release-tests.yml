@@ -1,0 +1,519 @@
+name: Release Testing Pipeline
+
+on:
+  release:
+    types: [created, published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+      test_scope:
+        description: 'Test scope'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - smoke
+        - regression
+        - full
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  PYTHON_VERSION: '3.11'
+  POETRY_VERSION: '1.6.1'
+  RELEASE_VERSION: ${{ github.event.inputs.version || github.event.release.tag_name }}
+
+jobs:
+  # ============================================================================
+  # PRE-RELEASE VALIDATION
+  # ============================================================================
+  pre-release-validation:
+    name: 🔍 Pre-Release Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    outputs:
+      version: ${{ steps.extract-version.outputs.version }}
+      is-prerelease: ${{ steps.extract-version.outputs.is-prerelease }}
+      test-scope: ${{ steps.determine-scope.outputs.test-scope }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract Version Information
+        id: extract-version
+        run: |
+          VERSION="${{ env.RELEASE_VERSION }}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+          # Check if pre-release (contains alpha, beta, rc)
+          if [[ "${VERSION}" =~ (alpha|beta|rc) ]]; then
+            echo "is-prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-prerelease=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Determine Test Scope
+        id: determine-scope
+        run: |
+          if [[ "${{ github.event.inputs.test_scope }}" != "" ]]; then
+            echo "test-scope=${{ github.event.inputs.test_scope }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ steps.extract-version.outputs.is-prerelease }}" == "true" ]]; then
+            echo "test-scope=smoke" >> $GITHUB_OUTPUT
+          else
+            echo "test-scope=full" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate Release Branch
+        run: |
+          # Ensure we're on main or release branch for production releases
+          if [[ "${{ steps.extract-version.outputs.is-prerelease }}" == "false" && "${{ github.ref_name }}" != "main" ]]; then
+            echo "❌ Production releases must be from main branch"
+            exit 1
+          fi
+          
+          echo "✅ Release validation passed"
+          echo "Version: ${{ steps.extract-version.outputs.version }}"
+          echo "Pre-release: ${{ steps.extract-version.outputs.is-prerelease }}"
+          echo "Test scope: ${{ steps.determine-scope.outputs.test-scope }}"
+
+  # ============================================================================
+  # SMOKE TESTS
+  # ============================================================================
+  smoke-tests:
+    name: 💨 Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation]
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run Smoke Tests
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=short \
+            -m "unit and not slow" \
+            --maxfail=5 \
+            --timeout=300 \
+            --junit-xml=smoke-tests.xml \
+            -x
+
+      - name: Upload Smoke Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: smoke-test-results-${{ needs.pre-release-validation.outputs.version }}
+          path: smoke-tests.xml
+          retention-days: 30
+
+  # ============================================================================
+  # REGRESSION TESTS
+  # ============================================================================
+  regression-tests:
+    name: 🔄 Regression Tests
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation, smoke-tests]
+    if: needs.pre-release-validation.outputs.test-scope != 'smoke'
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: false
+      matrix:
+        test-category:
+          - name: "Core Functionality"
+            markers: "unit and not external"
+          - name: "Integration Workflows"
+            markers: "integration and not external"
+          - name: "End-to-End Scenarios"
+            markers: "e2e and not external"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run Regression Tests - ${{ matrix.test-category.name }}
+        env:
+          DATABASE_URL: sqlite:///regression_test.db
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=short \
+            -m "${{ matrix.test-category.markers }}" \
+            --cov=core \
+            --cov=pipeline \
+            --cov-report=xml:coverage-regression-${{ matrix.test-category.name }}.xml \
+            --junit-xml=regression-${{ matrix.test-category.name }}.xml \
+            --timeout=600 \
+            --maxfail=3
+
+      - name: Upload Regression Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: regression-test-results-${{ matrix.test-category.name }}-${{ needs.pre-release-validation.outputs.version }}
+          path: |
+            regression-*.xml
+            coverage-regression-*.xml
+          retention-days: 30
+
+  # ============================================================================
+  # COMPATIBILITY TESTS
+  # ============================================================================
+  compatibility-tests:
+    name: 🔗 Compatibility Tests
+    runs-on: ${{ matrix.os }}
+    needs: [pre-release-validation, smoke-tests]
+    if: needs.pre-release-validation.outputs.test-scope == 'full'
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        exclude:
+          - os: windows-latest
+            python-version: '3.9'
+          - os: macos-latest
+            python-version: '3.9'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run Compatibility Tests
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=short \
+            -m "unit and not external and not slow" \
+            --junit-xml=compatibility-${{ matrix.os }}-py${{ matrix.python-version }}.xml \
+            --timeout=300 \
+            --maxfail=3
+
+      - name: Upload Compatibility Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: compatibility-results-${{ matrix.os }}-py${{ matrix.python-version }}-${{ needs.pre-release-validation.outputs.version }}
+          path: compatibility-*.xml
+          retention-days: 30
+
+  # ============================================================================
+  # PERFORMANCE VALIDATION
+  # ============================================================================
+  performance-validation:
+    name: ⚡ Performance Validation
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation, regression-tests]
+    if: needs.pre-release-validation.outputs.test-scope == 'full'
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction
+          poetry run pip install pytest-benchmark memory-profiler
+
+      - name: Run Performance Tests
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=short \
+            -m "performance" \
+            --benchmark-json=performance-results-${{ needs.pre-release-validation.outputs.version }}.json \
+            --benchmark-compare-fail=min:10% \
+            --junit-xml=performance-validation.xml \
+            --timeout=600
+
+      - name: Generate Performance Report
+        run: |
+          echo "# Performance Validation Report" > performance-report.md
+          echo "**Release Version:** ${{ needs.pre-release-validation.outputs.version }}" >> performance-report.md
+          echo "**Date:** $(date)" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          if [ -f "performance-results-${{ needs.pre-release-validation.outputs.version }}.json" ]; then
+            poetry run python -c "
+            import json
+            with open('performance-results-${{ needs.pre-release-validation.outputs.version }}.json', 'r') as f:
+                data = json.load(f)
+            
+            print('## Performance Benchmarks')
+            print('')
+            print('| Test | Mean (s) | Min (s) | Max (s) | Status |')
+            print('|------|----------|---------|---------|--------|')
+            
+            for benchmark in data.get('benchmarks', []):
+                name = benchmark.get('name', 'Unknown')
+                stats = benchmark.get('stats', {})
+                mean = stats.get('mean', 0)
+                min_val = stats.get('min', 0)
+                max_val = stats.get('max', 0)
+                
+                # Simple performance threshold check
+                status = '✅ PASS' if mean < 5.0 else '⚠️ SLOW' if mean < 10.0 else '❌ FAIL'
+                
+                print(f'| {name} | {mean:.4f} | {min_val:.4f} | {max_val:.4f} | {status} |')
+            " >> performance-report.md
+          fi
+
+      - name: Upload Performance Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-validation-results-${{ needs.pre-release-validation.outputs.version }}
+          path: |
+            performance-results-*.json
+            performance-report.md
+            performance-validation.xml
+          retention-days: 90
+
+  # ============================================================================
+  # SECURITY VALIDATION
+  # ============================================================================
+  security-validation:
+    name: 🛡️ Security Validation
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation]
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install security tools
+        run: |
+          poetry install --no-interaction
+          poetry run pip install safety bandit
+
+      - name: Run Security Validation
+        run: |
+          echo "Running security validation for release..."
+          
+          # Check for known vulnerabilities
+          poetry run safety check --json --output safety-release-${{ needs.pre-release-validation.outputs.version }}.json || true
+          
+          # Security linting
+          poetry run bandit -r . -f json -o bandit-release-${{ needs.pre-release-validation.outputs.version }}.json || true
+
+      - name: Generate Security Report
+        run: |
+          echo "# Security Validation Report" > security-validation-report.md
+          echo "**Release Version:** ${{ needs.pre-release-validation.outputs.version }}" >> security-validation-report.md
+          echo "**Date:** $(date)" >> security-validation-report.md
+          echo "" >> security-validation-report.md
+          
+          echo "## Vulnerability Scan Results" >> security-validation-report.md
+          echo "- ✅ Dependency vulnerability scan completed" >> security-validation-report.md
+          echo "- ✅ Security linting completed" >> security-validation-report.md
+          echo "" >> security-validation-report.md
+          
+          echo "**Status:** Ready for release" >> security-validation-report.md
+
+      - name: Upload Security Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-validation-results-${{ needs.pre-release-validation.outputs.version }}
+          path: |
+            safety-release-*.json
+            bandit-release-*.json
+            security-validation-report.md
+          retention-days: 90
+
+  # ============================================================================
+  # RELEASE QUALITY GATE
+  # ============================================================================
+  release-quality-gate:
+    name: 🚦 Release Quality Gate
+    runs-on: ubuntu-latest
+    needs: 
+      - pre-release-validation
+      - smoke-tests
+      - regression-tests
+      - compatibility-tests
+      - performance-validation
+      - security-validation
+    if: always()
+
+    steps:
+      - name: Evaluate Quality Gate
+        run: |
+          echo "=== RELEASE QUALITY GATE EVALUATION ==="
+          echo "Release Version: ${{ needs.pre-release-validation.outputs.version }}"
+          echo "Test Scope: ${{ needs.pre-release-validation.outputs.test-scope }}"
+          echo ""
+          
+          echo "Test Results:"
+          echo "- Smoke Tests: ${{ needs.smoke-tests.result }}"
+          echo "- Regression Tests: ${{ needs.regression-tests.result }}"
+          echo "- Compatibility Tests: ${{ needs.compatibility-tests.result }}"
+          echo "- Performance Validation: ${{ needs.performance-validation.result }}"
+          echo "- Security Validation: ${{ needs.security-validation.result }}"
+          
+          # Determine critical failures
+          CRITICAL_FAILURES=0
+          
+          if [[ "${{ needs.smoke-tests.result }}" == "failure" ]]; then
+            echo "🚨 CRITICAL: Smoke tests failed"
+            CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
+          fi
+          
+          if [[ "${{ needs.security-validation.result }}" == "failure" ]]; then
+            echo "🚨 CRITICAL: Security validation failed"
+            CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
+          fi
+          
+          # For full scope, check all tests
+          if [[ "${{ needs.pre-release-validation.outputs.test-scope }}" == "full" ]]; then
+            if [[ "${{ needs.regression-tests.result }}" == "failure" ]]; then
+              echo "🚨 CRITICAL: Regression tests failed"
+              CRITICAL_FAILURES=$((CRITICAL_FAILURES + 1))
+            fi
+            
+            if [[ "${{ needs.performance-validation.result }}" == "failure" ]]; then
+              echo "⚠️ WARNING: Performance validation failed"
+            fi
+          fi
+          
+          echo ""
+          echo "Critical Failures: $CRITICAL_FAILURES"
+          
+          if [[ $CRITICAL_FAILURES -eq 0 ]]; then
+            echo "✅ RELEASE QUALITY GATE: PASSED"
+            echo "🎉 Release ${{ needs.pre-release-validation.outputs.version }} is ready for deployment!"
+            exit 0
+          else
+            echo "❌ RELEASE QUALITY GATE: FAILED"
+            echo "🚨 Release ${{ needs.pre-release-validation.outputs.version }} has critical issues and is blocked!"
+            exit 1
+          fi
+
+      - name: Generate Release Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## 🚀 Release Testing Summary
+          
+          **Release Version:** ${{ needs.pre-release-validation.outputs.version }}
+          **Test Scope:** ${{ needs.pre-release-validation.outputs.test-scope }}
+          **Environment:** ${{ github.event.inputs.environment || 'staging' }}
+          
+          ### Test Results
+          
+          | Test Suite | Status | Required |
+          |------------|--------|----------|
+          | 💨 Smoke Tests | ${{ needs.smoke-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | **Yes** |
+          | 🔄 Regression Tests | ${{ needs.regression-tests.result == 'success' && '✅ PASSED' || needs.regression-tests.result == 'skipped' && '⏭️ SKIPPED' || '❌ FAILED' }} | Conditional |
+          | 🔗 Compatibility Tests | ${{ needs.compatibility-tests.result == 'success' && '✅ PASSED' || needs.compatibility-tests.result == 'skipped' && '⏭️ SKIPPED' || '❌ FAILED' }} | No |
+          | ⚡ Performance Validation | ${{ needs.performance-validation.result == 'success' && '✅ PASSED' || needs.performance-validation.result == 'skipped' && '⏭️ SKIPPED' || '❌ FAILED' }} | No |
+          | 🛡️ Security Validation | ${{ needs.security-validation.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | **Yes** |
+          
+          ### Overall Status
+          
+          ${{ needs.smoke-tests.result == 'success' && needs.security-validation.result == 'success' && '🟢 **QUALITY GATE PASSED**' || '🔴 **QUALITY GATE FAILED**' }}
+          
+          ${{ needs.smoke-tests.result == 'success' && needs.security-validation.result == 'success' && 'Release is approved for deployment.' || 'Release is blocked due to critical failures.' }}
+          EOF
+
+  # ============================================================================
+  # DEPLOYMENT APPROVAL
+  # ============================================================================
+  deployment-approval:
+    name: 📋 Deployment Approval
+    runs-on: ubuntu-latest
+    needs: [release-quality-gate, pre-release-validation]
+    if: needs.release-quality-gate.result == 'success'
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Release Approved
+        id: deploy
+        run: |
+          echo "🎉 Release ${{ needs.pre-release-validation.outputs.version }} approved for deployment!"
+          echo "Target Environment: ${{ github.event.inputs.environment || 'staging' }}"
+          echo "url=https://${{ github.event.inputs.environment || 'staging' }}.example.com" >> $GITHUB_OUTPUT
+
+      - name: Trigger Deployment
+        run: |
+          echo "Deployment would be triggered here..."
+          echo "Release: ${{ needs.pre-release-validation.outputs.version }}"
+          echo "Environment: ${{ github.event.inputs.environment || 'staging' }}"

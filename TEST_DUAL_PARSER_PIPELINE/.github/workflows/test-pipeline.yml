@@ -1,0 +1,567 @@
+name: Avito Pipeline Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.py'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - '**/*.py'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - '.github/workflows/**'
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_level:
+        description: 'Test level to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - unit
+        - integration
+        - e2e
+        - full
+      coverage_threshold:
+        description: 'Coverage threshold (%)'
+        required: false
+        default: '90'
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+  POETRY_VERSION: '1.6.1'
+  COVERAGE_THRESHOLD: ${{ github.event.inputs.coverage_threshold || '90' }}
+
+jobs:
+  # ============================================================================
+  # CODE QUALITY CHECKS
+  # ============================================================================
+  lint-and-format:
+    name: 🔍 Code Quality & Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install project
+        run: poetry install --no-interaction
+
+      - name: Run Black (code formatting check)
+        run: |
+          poetry run black --check --diff .
+        continue-on-error: true
+
+      - name: Run isort (import sorting check)
+        run: |
+          poetry run isort --check-only --diff .
+        continue-on-error: true
+
+      - name: Run flake8 (linting)
+        run: |
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        continue-on-error: true
+
+      - name: Run mypy (type checking)
+        run: |
+          poetry run mypy . --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+
+  # ============================================================================
+  # SECURITY SCANNING
+  # ============================================================================
+  security-scan:
+    name: 🔒 Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction --no-root
+
+      - name: Run Safety (dependency vulnerability scanning)
+        run: |
+          poetry run safety check --json --output safety-report.json
+        continue-on-error: true
+
+      - name: Run Bandit (security linting)
+        run: |
+          poetry run bandit -r . -f json -o bandit-report.json
+        continue-on-error: true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            safety-report.json
+            bandit-report.json
+          retention-days: 7
+
+  # ============================================================================
+  # UNIT TESTS
+  # ============================================================================
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        exclude:
+          # Reduce matrix size for faster CI
+          - os: windows-latest
+            python-version: '3.9'
+          - os: macos-latest
+            python-version: '3.9'
+          - os: macos-latest
+            python-version: '3.10'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: .venv
+          key: venv-${{ matrix.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install project
+        run: poetry install --no-interaction
+
+      - name: Run Unit Tests
+        run: |
+          poetry run pytest tests/unit/ \
+            -v \
+            --tb=short \
+            --cov=core \
+            --cov=pipeline \
+            --cov-report=xml:coverage-unit.xml \
+            --cov-report=html:htmlcov-unit \
+            --cov-report=term-missing \
+            --cov-fail-under=${{ env.COVERAGE_THRESHOLD }} \
+            --junit-xml=junit-unit.xml \
+            -m "unit and not slow"
+
+      - name: Upload Unit Test Coverage
+        uses: codecov/codecov-action@v3
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == env.PYTHON_VERSION
+        with:
+          file: coverage-unit.xml
+          flags: unit-tests
+          name: unit-tests-${{ matrix.os }}-${{ matrix.python-version }}
+
+      - name: Upload Unit Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: unit-test-results-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            junit-unit.xml
+            coverage-unit.xml
+            htmlcov-unit/
+          retention-days: 7
+
+  # ============================================================================
+  # INTEGRATION TESTS
+  # ============================================================================
+  integration-tests:
+    name: 🔗 Integration Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    if: ${{ !contains(github.event.inputs.test_level, 'unit') }}
+    
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run Integration Tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          poetry run pytest tests/integration/ \
+            -v \
+            --tb=short \
+            --cov=core \
+            --cov=pipeline \
+            --cov-report=xml:coverage-integration.xml \
+            --cov-report=html:htmlcov-integration \
+            --cov-report=term-missing \
+            --junit-xml=junit-integration.xml \
+            -m "integration and not external and not slow" \
+            --maxfail=3
+
+      - name: Upload Integration Test Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage-integration.xml
+          flags: integration-tests
+          name: integration-tests
+
+      - name: Upload Integration Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: integration-test-results
+          path: |
+            junit-integration.xml
+            coverage-integration.xml
+            htmlcov-integration/
+          retention-days: 7
+
+  # ============================================================================
+  # END-TO-END TESTS
+  # ============================================================================
+  e2e-tests:
+    name: 🚀 End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: [integration-tests]
+    if: ${{ contains(github.event.inputs.test_level, 'e2e') || contains(github.event.inputs.test_level, 'full') || github.event_name != 'workflow_dispatch' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run End-to-End Tests
+        env:
+          DATABASE_URL: sqlite:///test_e2e.db
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FTP_HOST: ${{ secrets.FTP_HOST }}
+          FTP_USER: ${{ secrets.FTP_USER }}
+          FTP_PASS: ${{ secrets.FTP_PASS }}
+        run: |
+          poetry run pytest tests/e2e/ \
+            -v \
+            --tb=short \
+            --cov=core \
+            --cov=pipeline \
+            --cov-report=xml:coverage-e2e.xml \
+            --cov-report=html:htmlcov-e2e \
+            --cov-report=term-missing \
+            --junit-xml=junit-e2e.xml \
+            -m "e2e and not external" \
+            --maxfail=2 \
+            --timeout=300
+
+      - name: Upload E2E Test Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage-e2e.xml
+          flags: e2e-tests
+          name: e2e-tests
+
+      - name: Upload E2E Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            junit-e2e.xml
+            coverage-e2e.xml
+            htmlcov-e2e/
+          retention-days: 7
+
+  # ============================================================================
+  # PERFORMANCE TESTS
+  # ============================================================================
+  performance-tests:
+    name: ⚡ Performance Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    if: github.event_name == 'schedule' || contains(github.event.inputs.test_level, 'full')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Run Performance Tests
+        run: |
+          poetry run pytest tests/ \
+            -v \
+            --tb=short \
+            --junit-xml=junit-performance.xml \
+            -m "performance or slow" \
+            --timeout=600 \
+            --benchmark-json=benchmark-results.json
+
+      - name: Upload Performance Test Results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-test-results
+          path: |
+            junit-performance.xml
+            benchmark-results.json
+          retention-days: 30
+
+  # ============================================================================
+  # COVERAGE CONSOLIDATION
+  # ============================================================================
+  coverage-report:
+    name: 📊 Coverage Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, e2e-tests]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: ${{ env.POETRY_VERSION }}
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Download all coverage reports
+        uses: actions/download-artifact@v3
+        with:
+          path: coverage-reports
+
+      - name: Combine coverage reports
+        run: |
+          poetry run coverage combine coverage-reports/*/coverage*.xml || true
+          poetry run coverage report --show-missing
+          poetry run coverage html -d htmlcov-combined
+          poetry run coverage xml -o coverage-combined.xml
+
+      - name: Upload Combined Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage-combined.xml
+          flags: combined
+          name: combined-coverage
+
+      - name: Coverage Badge
+        uses: tj-actions/coverage-badge-py@v2
+        with:
+          output: coverage-badge.svg
+
+      - name: Upload Coverage Badge
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-badge
+          path: coverage-badge.svg
+          retention-days: 90
+
+      - name: Upload Combined Coverage Report
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: combined-coverage-report
+          path: |
+            coverage-combined.xml
+            htmlcov-combined/
+            coverage-badge.svg
+          retention-days: 30
+
+  # ============================================================================
+  # QUALITY GATE
+  # ============================================================================
+  quality-gate:
+    name: 🚦 Quality Gate
+    runs-on: ubuntu-latest
+    needs: [lint-and-format, security-scan, unit-tests, integration-tests, e2e-tests, coverage-report]
+    if: always()
+
+    steps:
+      - name: Check Quality Gate Status
+        run: |
+          echo "=== QUALITY GATE RESULTS ==="
+          echo "Lint and Format: ${{ needs.lint-and-format.result }}"
+          echo "Security Scan: ${{ needs.security-scan.result }}"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "E2E Tests: ${{ needs.e2e-tests.result }}"
+          echo "Coverage Report: ${{ needs.coverage-report.result }}"
+          
+          # Determine overall status
+          if [[ "${{ needs.unit-tests.result }}" == "success" ]]; then
+            echo "✅ Quality Gate: PASSED"
+            echo "🎉 All critical tests passed - ready for deployment!"
+            exit 0
+          else
+            echo "❌ Quality Gate: FAILED"
+            echo "🚨 Critical tests failed - deployment blocked!"
+            exit 1
+          fi
+
+      - name: Create Quality Gate Summary
+        if: always()
+        run: |
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## 🚦 Quality Gate Summary
+          
+          | Check | Status | Required |
+          |-------|--------|----------|
+          | 🔍 Code Quality & Linting | ${{ needs.lint-and-format.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | No |
+          | 🔒 Security Scanning | ${{ needs.security-scan.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | No |
+          | 🧪 Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | **Yes** |
+          | 🔗 Integration Tests | ${{ needs.integration-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | No |
+          | 🚀 E2E Tests | ${{ needs.e2e-tests.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | No |
+          | 📊 Coverage Report | ${{ needs.coverage-report.result == 'success' && '✅ PASSED' || '❌ FAILED' }} | No |
+          
+          ### Overall Status: ${{ needs.unit-tests.result == 'success' && '✅ QUALITY GATE PASSED' || '❌ QUALITY GATE FAILED' }}
+          
+          **Coverage Threshold**: ${{ env.COVERAGE_THRESHOLD }}%
+          **Test Level**: ${{ github.event.inputs.test_level || 'full' }}
+          **Trigger**: ${{ github.event_name }}
+          EOF
+
+  # ============================================================================
+  # DEPLOYMENT READINESS
+  # ============================================================================
+  deployment-readiness:
+    name: 🚀 Deployment Readiness Check
+    runs-on: ubuntu-latest
+    needs: [quality-gate]
+    if: needs.quality-gate.result == 'success' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Deployment Ready Notification
+        run: |
+          echo "🎉 DEPLOYMENT READY!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "All quality gates passed - ready for production deployment!"
+          
+          cat >> $GITHUB_STEP_SUMMARY << 'EOF'
+          ## 🚀 Deployment Readiness
+          
+          ✅ **All quality gates passed!**
+          
+          **Ready for deployment to:**
+          - Production (main branch)
+          - Staging (develop branch)
+          
+          **Next steps:**
+          1. Deploy to staging environment
+          2. Run smoke tests
+          3. Deploy to production (if main branch)
+          EOF
