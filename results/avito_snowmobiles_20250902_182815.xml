@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Ads formatVersion="3" target="Avito.ru">
+    <Ad>
+        <Id>SKU-ADTD-2026</Id>
+        <Title>Ski-Doo Ski-Doo Expedition Xtreme 900 ACE Turbo R (SKU-ADTD-2026) 2026 X</Title>
+        <Description>Модель: Ski-Doo Expedition Xtreme 900 ACE Turbo R
+            Двигатель: 850 E-TEC
+            Гусеница: 154in/3900mm
+            Запуск: Electric
+            Приборы: 4.5 in. Digital Display
+            Цвет: Black
+
+            Описание: The Ski-Doo Expedition Xtreme 900 ACE Turbo R is a high-performance crossover snowmobile designed
+            for both trail riding and deep snow exploration. With its powerful turbocharged engine, advanced suspension,
+            and versatile track, it caters to experienced riders seeking an exhilarating and capable machine that can
+            handle a variety of terrain and conditions.
+            Объем двигателя: 899 куб.см
+            Мощность: 150 л.с.
+
+            ✅ Официальная гарантия
+            ✅ Доставка по России
+            ✅ Сертифицированный дилер BRP
+        </Description>
+        <Price>2107000</Price>
+        <Category>Мотоциклы и мототехника</Category>
+        <VehicleType>Снегоходы</VehicleType>
+        <Address>Санкт-Петербург</Address>
+        <Make>BRP</Make>
+        <Model>Ski-Doo Expedition Xtreme 900 ACE Turbo R</Model>
+        <Year>2026</Year>
+        <EngineDisplacement>899</EngineDisplacement>
+        <ContactPhone>+7 (812) 123-45-67</ContactPhone>
+        <Images>
+            <Image url="https://example.com/snowmobile-SKU-ADTD-2026.jpg"/>
+        </Images>
+    </Ad>
+</Ads>

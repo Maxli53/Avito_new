@@ -1,0 +1,139 @@
+{
+  "timestamp": "2025-09-02T01:21:46.328637",
+  "target_models": [
+    "ADTD",
+    "ADTC"
+  ],
+  "test_type": "enterprise_production",
+  "pdf_files": {
+    "price_list": {
+      "path": "TEST_DUAL_PARSER_PIPELINE\\docs\\SKI-DOO_2026-PRICE_LIST.pdf",
+      "size_bytes": 178394
+    },
+    "spec_book": {
+      "path": "TEST_DUAL_PARSER_PIPELINE\\docs\\SKIDOO_2026 PRODUCT SPEC BOOK 1-35.pdf",
+      "size_bytes": 5159469
+    }
+  },
+  "database": {
+    "path": "snowmobile_reconciliation.db",
+    "size_bytes": 102400
+  },
+  "processing_results": [
+    {
+      "model_code": "ADTD",
+      "processing_time_ms": 4579.415798187256,
+      "extraction_success": true,
+      "claude_enrichment_success": true,
+      "database_integration_success": true,
+      "extracted_data": {
+        "model_code": "ADTD",
+        "price": 21070.0,
+        "currency": "EUR",
+        "model_name": "Unknown Model (ADTD)"
+      },
+      "finnish_data": {
+        "malli": "Expedition Xtreme",
+        "paketti": "X",
+        "moottori": "850 E-TEC",
+        "telamatto": "154in/3900mm",
+        "kaynnistin": "Electric",
+        "mittaristo": "4.5 in. Digital Display",
+        "kev\u00e4toptiot": null,
+        "vari": "Black"
+      }
+    },
+    {
+      "model_code": "ADTC",
+      "processing_time_ms": 6179.063320159912,
+      "extraction_success": true,
+      "claude_enrichment_success": false,
+      "database_integration_success": true,
+      "extracted_data": {
+        "model_code": "ADTC",
+        "price": 21320.0,
+        "currency": "EUR",
+        "model_name": "Unknown Model (ADTC)"
+      },
+      "finnish_data": {
+        "malli": "Expedition Xtreme",
+        "paketti": "X",
+        "moottori": "850 E-TEC",
+        "telamatto": "154in/3900mm",
+        "kaynnistin": "Electric",
+        "mittaristo": "4.5 in. Digital Display",
+        "kev\u00e4toptiot": null,
+        "vari": "Scandi Blue Scandi Blue"
+      }
+    }
+  ],
+  "database_operations": [
+    {
+      "model_code": "ADTD",
+      "price_list_id": "test-ADTD-1756765308",
+      "price_entry_id": "entry-ADTD-1756765308",
+      "product_sku": "SKU-ADTD-2026",
+      "mapping_id": "mapping-ADTD-1756765312",
+      "success": true
+    },
+    {
+      "model_code": "ADTC",
+      "price_list_id": "test-ADTC-1756765312",
+      "price_entry_id": "entry-ADTC-1756765312",
+      "product_sku": null,
+      "mapping_id": null,
+      "success": true
+    }
+  ],
+  "errors": [
+    "Claude enrichment failed for ADTC"
+  ],
+  "claude_interactions": [
+    {
+      "model_code": "ADTD",
+      "processing_time_ms": 4477.454662322998,
+      "success": true,
+      "enrichment_data": {
+        "model_name": "Ski-Doo Expedition Xtreme 900 ACE Turbo R",
+        "category": "Crossover",
+        "specifications": {
+          "engine": {
+            "type": "900 ACE Turbo R",
+            "displacement": 899,
+            "power_hp": 150
+          },
+          "track": {
+            "length_mm": 3962,
+            "width_mm": 508,
+            "lug_height_mm": 63.5
+          },
+          "dimensions": {
+            "length_mm": 3505,
+            "width_mm": 1270,
+            "height_mm": 1295
+          },
+          "features": [
+            "Turbo-charged 900 ACE engine",
+            "Dual-phase heat exchanger",
+            "Intelligent Throttle Control (iTC)",
+            "Ski-Doo's REV Gen4 platform",
+            "Pilot TS skis for improved handling",
+            "Lightweight and durable construction"
+          ]
+        },
+        "market_positioning": "The Ski-Doo Expedition Xtreme 900 ACE Turbo R is a high-performance crossover snowmobile designed for both trail riding and deep snow exploration. With its powerful turbocharged engine, advanced suspension, and versatile track, it caters to experienced riders seeking an exhilarating and capable machine that can handle a variety of terrain and conditions.",
+        "confidence": 0.9,
+        "reasoning": "Based on the provided model code 'ADTD' and the Ski-Doo brand, I have interpreted the full model name as the 'Ski-Doo Expedition Xtreme 900 ACE Turbo R'. This model is classified as a 'Crossover' snowmobile, as it is designed for both trail and deep snow use. The key specifications, including the 899cc turbocharged engine, 3962mm track length, and 508mm track width, support this categorization. The listed features, such as the Intelligent Throttle Control, REV Gen4 platform, and Pilot TS skis, further enhance the snowmobile's versatility and performance. Overall, this model is positioned as a high-end, feature-rich crossover snowmobile suitable for experienced riders seeking a capable and exhilarating riding experience in a variety of winter conditions."
+      }
+    }
+  ],
+  "performance_metrics": {
+    "total_processing_time_ms": 12639.391899108887,
+    "models_processed": 2,
+    "successful_extractions": 2,
+    "successful_enrichments": 1,
+    "database_operations": 2,
+    "error_count": 1,
+    "average_processing_time_ms": 6319.695949554443
+  }
+}

@@ -73,7 +73,7 @@ class PipelineOrchestrator:
         self.config = get_config()
         
         # Initialize database
-        db_path = database_path or "snowmobile_reconciliation.db"
+        db_path = database_path or "dual_db.db"
         self.database = DatabaseManager(db_path)
         
         # Initialize pipeline components

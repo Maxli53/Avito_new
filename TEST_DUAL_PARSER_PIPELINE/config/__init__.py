@@ -1,3 +1,3 @@
-from .config import settings, get_settings, validate_environment
+from .config import get_config, PipelineConfig, ExtractionConfig, MatchingConfig, ValidationConfig
 
-__all__ = ['settings', 'get_settings', 'validate_environment']
+__all__ = ['get_config', 'PipelineConfig', 'ExtractionConfig', 'MatchingConfig', 'ValidationConfig']

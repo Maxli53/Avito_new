@@ -9,7 +9,9 @@ from pathlib import Path
 import logging
 from datetime import datetime
 
-from ...core import ProductData, PipelineStats, PipelineStage, ExtractionError
+import sys
+sys.path.append('..')
+from core import ProductData, PipelineStats, PipelineStage, ExtractionError
 
 logger = logging.getLogger(__name__)
 

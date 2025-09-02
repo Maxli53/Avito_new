@@ -23,7 +23,7 @@ class ExtractionConfig:
     ocr_confidence_threshold: float = 0.8
     
     # LLM Settings
-    claude_model: str = "claude-3-sonnet-20241022"
+    claude_model: str = "claude-sonnet-4-20250514"
     openai_model: str = "gpt-4"
     max_tokens: int = 4000
     temperature: float = 0.1

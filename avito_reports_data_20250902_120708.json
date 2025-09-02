@@ -1,0 +1,336 @@
+{
+  "reports_list": {
+    "reports": [
+      {
+        "id": 417554510,
+        "started_at": "2025-08-25T07:11:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 416404465,
+        "started_at": "2025-08-22T15:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 416322737,
+        "started_at": "2025-08-22T11:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 416237633,
+        "started_at": "2025-08-22T07:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415953576,
+        "started_at": "2025-08-21T15:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415871403,
+        "started_at": "2025-08-21T11:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415786936,
+        "started_at": "2025-08-21T07:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415503681,
+        "started_at": "2025-08-20T15:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415421861,
+        "started_at": "2025-08-20T11:43:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415336950,
+        "started_at": "2025-08-20T07:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 415053647,
+        "started_at": "2025-08-19T15:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 414971660,
+        "started_at": "2025-08-19T11:43:01Z",
+        "finished_at": "2025-08-19T11:43:10Z",
+        "status": "error"
+      },
+      {
+        "id": 414887327,
+        "started_at": "2025-08-19T07:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 414605812,
+        "started_at": "2025-08-18T15:43:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 414524177,
+        "started_at": "2025-08-18T11:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 414440580,
+        "started_at": "2025-08-18T07:43:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 413277729,
+        "started_at": "2025-08-15T15:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 413194754,
+        "started_at": "2025-08-15T11:26:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 413111144,
+        "started_at": "2025-08-15T07:26:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 412827416,
+        "started_at": "2025-08-14T15:26:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 412744820,
+        "started_at": "2025-08-14T11:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 412660590,
+        "started_at": "2025-08-14T07:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 412376697,
+        "started_at": "2025-08-13T15:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 412293450,
+        "started_at": "2025-08-13T11:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 412209349,
+        "started_at": "2025-08-13T07:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 411926000,
+        "started_at": "2025-08-12T15:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 411843173,
+        "started_at": "2025-08-12T11:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 411759474,
+        "started_at": "2025-08-12T07:26:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 411477521,
+        "started_at": "2025-08-11T15:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 411395161,
+        "started_at": "2025-08-11T11:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 411312144,
+        "started_at": "2025-08-11T07:26:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 410152082,
+        "started_at": "2025-08-08T15:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 410068106,
+        "started_at": "2025-08-08T11:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409984905,
+        "started_at": "2025-08-08T07:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409702177,
+        "started_at": "2025-08-07T15:08:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409618498,
+        "started_at": "2025-08-07T11:08:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409536417,
+        "started_at": "2025-08-07T07:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409257461,
+        "started_at": "2025-08-06T15:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409173382,
+        "started_at": "2025-08-06T11:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 409089891,
+        "started_at": "2025-08-06T07:08:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 408807066,
+        "started_at": "2025-08-05T15:08:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 408723391,
+        "started_at": "2025-08-05T11:08:03Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 408640217,
+        "started_at": "2025-08-05T07:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 408358202,
+        "started_at": "2025-08-04T15:08:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 408276780,
+        "started_at": "2025-08-04T11:08:02Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 408194491,
+        "started_at": "2025-08-04T07:08:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 407039923,
+        "started_at": "2025-08-01T15:09:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 406984128,
+        "started_at": "2025-08-01T11:09:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 406901070,
+        "started_at": "2025-08-01T07:09:01Z",
+        "finished_at": "",
+        "status": "error"
+      },
+      {
+        "id": 406618918,
+        "started_at": "2025-07-31T15:09:04Z",
+        "finished_at": "",
+        "status": "error"
+      }
+    ],
+    "meta": {
+      "per_page": 50,
+      "page": 0,
+      "pages": 2,
+      "total": 62
+    }
+  },
+  "last_completed_report": {
+    "report_id": 417554510,
+    "started_at": "2025-08-25T07:11:01Z",
+    "finished_at": "",
+    "status": "error",
+    "section_stats": {
+      "title": "Обработано объявлений",
+      "slug": "sections_stats",
+      "count": 0
+    },
+    "listing_fees": {
+      "single": {},
+      "packages": []
+    },
+    "feed_url": "https://api.avito.ru/autoload/v2/feed/content/68ac0c85d77f3bb2285d03a0/c8306095-07a7-449d-88b9-6dc50dc74698",
+    "source": "Url",
+    "events": [
+      {
+        "code": 108,
+        "type": "error",
+        "description": "Не удалось скачать файл, ошибка: Not Found (404), URL: http://conventum.kg/api/avito/test_corrected_profile.xml"
+      }
+    ]
+  }
+}

@@ -1,0 +1,1415 @@
+{
+  "category": "snegohody",
+  "timestamp": "20250902_124141",
+  "summary": {
+    "total_fields": 44,
+    "required_fields": 0,
+    "optional_fields": 44
+  },
+  "required_fields": [],
+  "optional_fields": [
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    },
+    {
+      "name": "Unknown",
+      "type": "Unknown",
+      "required": false,
+      "description": ""
+    }
+  ],
+  "raw_data": {
+    "node": {
+      "name": "Снегоходы",
+      "slug": "snegohody"
+    },
+    "fields": [
+      {
+        "tag": "Id",
+        "label": "Уникальный идентификатор объявления",
+        "descriptions": "Это уникальный идентификатор, который вы присваиваете каждому объявлению в файле. Он помогает Авито распознавать объявления от загрузки к загрузке.\n\nИдентификаторы не должны повторяться и их нельзя менять — тогда вы избежите блокировок и других ошибок. Присвоить Id можно двумя способами:\n\n1) Если вы создаёте свой файл или используете шаблон Авито, придумайте Id самостоятельно. Заранее подумайте над правилами, по которым будете составлять его, — так будет проще добавлять новые Id. Например, можно использовать нумерацию по порядку.\n\n2) Если вы работаете в CRM, ERP или другой системе, там есть идентификатор товара или объявления. Можно использовать его.\n\nId может состоять из цифр, русских и английских букв, а также символов , \\ / ( ) [  ] - =. Всего — не более 100 знаков.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "DateBegin",
+        "label": "Начало размещения",
+        "descriptions": "Это дата и&nbsp;время размещения объявления. Чтобы оно опубликовалось в&nbsp;начале дня по&nbsp;Москве, укажите дату в&nbsp;одном из&nbsp;форматов:\n\n&nbsp; — dd.MM.yyyy\n\n&nbsp; — dd.MM.yy\n\n&nbsp; — yyyy-MM-dd\n\nЧтобы публикация произошла с&nbsp;точностью до&nbsp;часа, добавьте время через пробел в&nbsp;формате HH:mm:ss или HH:mm.\n\nЕсли хотите явно указать часовой пояс, используйте формат [ISO&nbsp;8601](https://ru.wikipedia.org/wiki/ISO_8601): YYYY-MM-DDTHH:mm:ss+hh:mm.\n\nНесколько важных моментов:\n\n&nbsp; — Если в&nbsp;указанную дату автозагрузка будет выключена или тариф не&nbsp;оплачен, объявление не&nbsp;опубликуется.\n\n&nbsp; — Если дата из&nbsp;DateBegin ещё не&nbsp;наступила, а&nbsp;объявление уже размещено, оно закроется. Когда эта дата наступит, объявление снова опубликуется.\n\n&nbsp; — Публикация объявления по&nbsp;DateBegin не&nbsp;зависит от&nbsp;расписания загрузки вашего файла и&nbsp;произойдёт в&nbsp;указанную дату и&nbsp;время.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "DateEnd",
+        "label": "Окончание размещения",
+        "descriptions": "Это дата и&nbsp;время окончания размещения. Чтобы объявление закрылось в&nbsp;конце дня по&nbsp;Москве, укажите дату в&nbsp;одном из&nbsp;форматов:\n\n&nbsp; — dd.MM.yyyy\n\n&nbsp; — dd.MM.yy\n\n&nbsp; — yyyy-MM-dd\n\nЧтобы объявление закрылось с&nbsp;точностью до&nbsp;часа, добавьте время через пробел в&nbsp;формате HH:mm:ss или HH:mm.\n\nЕсли хотите явно указать часовой пояс, используйте формат [ISO&nbsp;8601](https://ru.wikipedia.org/wiki/ISO_8601): YYYY-MM-DDTHH:mm:ss+hh:mm.\n\nЕсли вы&nbsp;укажете уже прошедшую дату, автозагрузка не&nbsp;обработает объявление.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "ListingFee",
+        "label": "Способ размещения",
+        "descriptions": "Вариант [платного размещения](https://support.avito.ru/partitions/63) ",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Package",
+                "description": "размещение объявления осуществляется только при наличии подходящего пакета размещения"
+              },
+              {
+                "value": "PackageSingle",
+                "description": "при наличии подходящего пакета оплата размещения объявления произойдет с него; если нет подходящего пакета, но достаточно денег на кошельке Авито, то произойдет разовое размещение"
+              },
+              {
+                "value": "Single",
+                "description": "только разовое размещение, произойдет при наличии достаточной суммы на кошельке Авито; если есть подходящий пакет размещения, он будет проигнорирован"
+              }
+            ],
+            "default": {
+              "value": "Package"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "AdStatus",
+        "label": "Услуга продвижения",
+        "descriptions": "Услуга продвижения\n\nЧтобы услуга подключилась, в кошельке на Авито должно быть достаточно рублей или бонусов.\n\nЗа загрузку к объявлению можно подключить только одну услугу. Пока она действует, добавить ещё одну такую же не получится. Если вы попробуете это сделать, они подключатся по очереди. Разные услуги, которые увеличивают просмотры, тоже не сочетаются друг с другом.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Free",
+                "description": "обычное объявление, услуги не подключаются"
+              },
+              {
+                "value": "Highlight",
+                "description": "«Выделение цветом» (действует 7 дней)"
+              },
+              {
+                "value": "XL",
+                "description": "«XL-объявление» (действует 7 дней)"
+              },
+              {
+                "value": "x2_1",
+                "description": "«До 2 раз больше просмотров на 1 день»"
+              },
+              {
+                "value": "x2_7",
+                "description": "«До 2 раз больше просмотров на 7 дней»"
+              },
+              {
+                "value": "x5_1",
+                "description": "«До 5 раз больше просмотров на 1 день»"
+              },
+              {
+                "value": "x5_7",
+                "description": "«До 5 раз больше просмотров на 7 дней»"
+              },
+              {
+                "value": "x10_1",
+                "description": "«До 10 раз больше просмотров на 1 день»"
+              },
+              {
+                "value": "x10_7",
+                "description": "«До 10 раз больше просмотров на 7 дней»."
+              },
+              {
+                "value": "x15_1",
+                "description": "«До 15 раз больше просмотров на 1 день». Доступно в некоторых регионах и категориях."
+              },
+              {
+                "value": "x15_7",
+                "description": "«До 15 раз больше просмотров на 7 дней». Доступно в некоторых регионах и категориях."
+              },
+              {
+                "value": "x20_1",
+                "description": "«До 20 раз больше просмотров на 1 день». Доступно в некоторых регионах и категориях."
+              },
+              {
+                "value": "x20_7",
+                "description": "«До 20 раз больше просмотров на 7 дней». Доступно в некоторых регионах и категориях."
+              }
+            ],
+            "default": {
+              "value": "Free"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "AvitoId",
+        "label": "Номер объявления на Авито",
+        "descriptions": "Это номер объявления на Авито.\n\nЕсли вы добавляете в файл новое объявление, не заполняйте AvitoId. Номер присвоится автоматически.\n\nВы заполняете AvitoId сами, только если добавляете в файл уже размещённое объявление. Причины могут быть разные — например, вы размещали его не через автозагрузку или у него изменился Id. Тогда Авито сможет сопоставить объявления, а вы избежите ошибок.\n\nЕсть два способа узнать AvitoId. Первый — скачать файл с объявлениями [в настройках автозагрузки](https://www.avito.ru/autoload/settings). Второй — поискать номер в объявлении, он будет либо внизу, либо вверху страницы.\n\nЕсли у вас появились проблемы с заполнением поля AvitoId, можете указать его в поле Description в формате: «AvitoId: ХХХ», где ХХХ — это номер объявления. Пользователи Авито не увидят эту информацию.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "ManagerName",
+        "label": "Контактное лицо",
+        "descriptions": "Имя менеджера, контактного лица компании по данному объявлению — строка не более 40 символов.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "ContactPhone",
+        "label": "Номер телефона",
+        "descriptions": "Контактный телефон — строка, содержащая только один российский номер телефона. Обязательно указать код города или мобильного оператора:\n\n — Код города должен указываться с +7 или 8 в начале\n\n — Код мобильного оператора можно без 8 и 7 в начале\n\nКорректные примеры:\n\n — +7 (495) 777-10-66\n\n — (81374) 4-55-75\n\n — 8 905 207 04 90\n\n — +7 905 2070490\n\n — 88123855085",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "Address",
+        "label": "Адрес",
+        "descriptions": "Полный адрес объекта — строка до 256 символов.\n\n Является альтернативой параметрам **Latitude**, **Longitude**",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false,
+            "dependencies_text": [
+              "Если не указаны Latitude и Longitude"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Latitude",
+        "label": "Широта",
+        "descriptions": "Широта [в градусах — десятичные дроби](https://ru.wikipedia.org/wiki/%D0%93%D0%B5%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5_%D0%BA%D0%BE%D0%BE%D1%80%D0%B4%D0%B8%D0%BD%D0%B0%D1%82%D1%8B#.D0.A4.D0.BE.D1.80.D0.BC.D0.B0.D1.82.D1.8B_.D0.B7.D0.B0.D0.BF.D0.B8.D1.81.D0.B8_.D0.B3.D0.B5.D0.BE.D0.B3.D1.80.D0.B0.D1.84.D0.B8.D1.87.D0.B5.D1.81.D0.BA.D0.B8.D1.85_.D0.BA.D0.BE.D0.BE.D1.80.D0.B4.D0.B8.D0.BD.D0.B0.D1.82)\n\nВместе с параметром **Longitude** используется для указания точки на карте с помощью географических координат.\n\nЯвляется альтернативой элементу **Address**.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "dependencies_text": [
+              "Если указан Address"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Longitude",
+        "label": "Долгота",
+        "descriptions": "Долгота [в градусах — десятичные дроби](https://ru.wikipedia.org/wiki/%D0%93%D0%B5%D0%BE%D0%B3%D1%80%D0%B0%D1%84%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B5_%D0%BA%D0%BE%D0%BE%D1%80%D0%B4%D0%B8%D0%BD%D0%B0%D1%82%D1%8B#.D0.A4.D0.BE.D1.80.D0.BC.D0.B0.D1.82.D1.8B_.D0.B7.D0.B0.D0.BF.D0.B8.D1.81.D0.B8_.D0.B3.D0.B5.D0.BE.D0.B3.D1.80.D0.B0.D1.84.D0.B8.D1.87.D0.B5.D1.81.D0.BA.D0.B8.D1.85_.D0.BA.D0.BE.D0.BE.D1.80.D0.B4.D0.B8.D0.BD.D0.B0.D1.82)\n\nВместе с параметром **Latitude** используется для указания точки на карте с помощью географических координат.\n\nЯвляется альтернативой параметру **Address**.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "dependencies_text": [
+              "Если указан Address"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "ContactMethod",
+        "label": "Способ связи",
+        "descriptions": "Способ связи",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "По телефону и в сообщениях"
+              },
+              {
+                "value": "По телефону"
+              },
+              {
+                "value": "В сообщениях"
+              }
+            ],
+            "default": {
+              "value": "По телефону и в сообщениях"
+            }
+          }
+        ]
+      },
+      {
+        "tag": "InternetCalls",
+        "label": "Интернет звонки",
+        "descriptions": "Включение интернет-звонков через Авито. По объявлениям смогут звонить по интернету. Вы не пропустите звонки и не потеряете клиентов: если интернет плохой, в объявлении покажем временный номер, а вся история вызовов сохранится в чате.\n\n**Интернет-звонки работают корректно, если вы укажете устройство для приёма звонков в параметре CallsDevices.**\n\nПреимущества интернет-звонков:\n\n — Легко отличить важные вызовы от спама: видно кто звонит и по какому объявлению.\n\n — Сделки совершаются быстрее: пользователи с включенными интернет-звонками получают на 24% больше звонков.\n\nВходящие интернет-звонки через Авито можно отключить для всех объявлений в [Настройках](https://www.avito.ru/profile/settings) в любое время.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Да"
+              },
+              {
+                "value": "Нет"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "CallsDevices",
+        "label": "Устройства для приёма звонков",
+        "descriptions": "Идентификатор (ID) мобильного устройства, на которые будут приходить интернет-звонки. Можно выбрать одно или несколько для каждого объявления.\n\nИдентификатор устройства (ID) можно посмотреть в [Настройках](https://www.avito.ru/profile/settings) (на мобильных устройствах — в профиле) → «Устройства для приёма звонков через Авито».\n\nЕсли ничего не выбрать, звонки будут поступать на первое устройство из списка.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "Delivery",
+        "label": "Способ доставки",
+        "descriptions": "Доступные способы доставки.\n\n[Подробнее о работе с доставкой](https://support.avito.ru/sections/157).",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "checkbox",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Выключена"
+              },
+              {
+                "value": "ПВЗ"
+              },
+              {
+                "value": "Курьер"
+              },
+              {
+                "value": "Постамат"
+              },
+              {
+                "value": "Свой курьер"
+              },
+              {
+                "value": "Свой партнер СДЭК"
+              },
+              {
+                "value": "Свой партнер Деловые Линии"
+              },
+              {
+                "value": "Свой партнер DPD"
+              },
+              {
+                "value": "Свой партнер ПЭК"
+              },
+              {
+                "value": "Свой партнер Почта России"
+              },
+              {
+                "value": "Свой партнер СДЭК курьер"
+              },
+              {
+                "value": "Самовывоз с онлайн-оплатой"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "WeightForDelivery",
+        "label": "Вес (Для Доставки)",
+        "descriptions": "Вес товара (кг), может использоваться для доставки",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "float",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "LengthForDelivery",
+        "label": "Длина (Для Доставки)",
+        "descriptions": "Длина товара (см), может использоваться для доставки",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "HeightForDelivery",
+        "label": "Высота (Для Доставки)",
+        "descriptions": "Высота товара (см), может использоваться для доставки",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "WidthForDelivery",
+        "label": "Ширина (Для Доставки)",
+        "descriptions": "Ширина товара (см), может использоваться для доставки",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "Category",
+        "label": "Категория",
+        "descriptions": "Категория объявления",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Мотоциклы и мототехника"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Title",
+        "label": "Название объявления",
+        "descriptions": "Название объявления — строка до 50 символов.\n\n_Примечание_: не пишите в название цену и контактную информацию — для этого есть отдельные поля — и не используйте слово «продам».",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "Description",
+        "label": "Описание объявления",
+        "descriptions": "Текстовое описание объявления в соответствии с [правилами Авито](https://support.avito.ru/hc/ru/articles/200026968?_ga=2.41221986.1970678515.1655737611-910704397.1650293190) — строка не более 7500 символов.\nДля объявлений, параметры которых соответствуют оплаченному [тарифу](https://www.avito.ru/business/tariffs?_ga=2.41221986.1970678515.1655737611-910704397.1650293190), вы можете использовать дополнительное форматирование с помощью HTML-тегов, поместив описание внутрь [CDATA](https://ru.wikipedia.org/wiki/CDATA#CDATA_.D0.B2_XML). Использовать можно только HTML-теги из списка: p, br, strong, em, ul, ol, li. \n\n\n**Важно**:\n\n1. Тег n (перенос строки) преобразуется в br, поэтому при использовании CDATA интервалы между абзацами будут увеличены. \n2. В секции CDATA распознается только один элемент разметки - строка CDEnd. Поэтому все символы левой угловой скобки и амперсанда могут предстать здесь в своем обычном текстовом виде. Эти символы не нужно маскировать с помощью комбинаций '\\&lt;', '\\&gt;' и '\\&amp;'.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "Price",
+        "label": "Цена",
+        "descriptions": "Цена в рублях — целое число.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "DisplayAreas",
+        "label": "Зоны показа",
+        "descriptions": "**Внимание, функциональность находится на стадии тестирования. Вы получите уведомление, когда она станет доступна для вас.**\n\nЗоны показа объявления - значения из [справочника](https://autoload.avito.ru/format/DisplayAreas.xml).",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "VehicleType",
+        "label": "Вид техники",
+        "descriptions": "Вид техники",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Снегоходы"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Make",
+        "label": "Марка",
+        "descriptions": "Марка транспортного средства.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": true,
+            "values_link_xml": "https://avito.ru/web/1/catalogs/content/feed/snegohod.xml",
+            "is_catalog": true,
+            "name_in_catalog": "mark"
+          }
+        ]
+      },
+      {
+        "tag": "Model",
+        "label": "Модель",
+        "descriptions": "Модель транспортного средства.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": true,
+            "values_link_xml": "https://avito.ru/web/1/catalogs/content/feed/snegohod.xml",
+            "is_catalog": true,
+            "name_in_catalog": "model"
+          }
+        ]
+      },
+      {
+        "tag": "Type",
+        "label": "Тип",
+        "descriptions": "Тип транспортного средства.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": true,
+            "values": [
+              {
+                "value": "Утилитарный"
+              },
+              {
+                "value": "Спортивный или горный"
+              },
+              {
+                "value": "Туристический"
+              },
+              {
+                "value": "Детский"
+              },
+              {
+                "value": "Мотобуксировщик"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Year",
+        "label": "Год выпуска",
+        "descriptions": "Год выпуска — целое число в диапазоне от 1905 до 2022",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": true,
+            "values_link_json": "https://api.avito.ru/autoload/v1/user-docs/node/snegohody/field/122967/values-json",
+            "values_link_xml": "https://api.avito.ru/autoload/v1/user-docs/node/snegohody/field/122967/values-xml"
+          }
+        ]
+      },
+      {
+        "tag": "EngineType",
+        "label": "Тип двигателя",
+        "descriptions": "Тип двигателя",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": true,
+            "values": [
+              {
+                "value": "Бензин"
+              },
+              {
+                "value": "Электро"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Power",
+        "label": "Мощность",
+        "descriptions": "Мощность транспортного средства.\n\nДля бензинового двигателя - в л.с. — целое число в диапазоне от 1 до 3000.\n\nДля электро двигателя - в Вт — целое число в диапазоне от 1 до 1000000.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": true,
+            "values_range": {
+              "min": 1,
+              "max": 1000000
+            },
+            "dependencies": [
+              {
+                "clause": "and",
+                "action": "visible",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Электро"
+                    ]
+                  }
+                ]
+              },
+              {
+                "clause": "and",
+                "action": "required",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Электро"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "dependencies_text": [
+              "Применимо, если в поле EngineType указано значение 'Электро'",
+              "Обязательно, если в поле EngineType указано значение 'Электро'"
+            ]
+          },
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": true,
+            "values_range": {
+              "min": 1,
+              "max": 3000
+            },
+            "dependencies": [
+              {
+                "clause": "and",
+                "action": "required",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Бензин"
+                    ]
+                  }
+                ]
+              },
+              {
+                "clause": "and",
+                "action": "visible",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Бензин"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "dependencies_text": [
+              "Обязательно, если в поле EngineType указано значение 'Бензин'",
+              "Применимо, если в поле EngineType указано значение 'Бензин'"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "EngineCapacity",
+        "label": "Объём двигателя",
+        "descriptions": "Объем двигателя в см<sup>3</sup> — целое число в диапазоне от 1 до 100000",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": true,
+            "values_range": {
+              "min": 1,
+              "max": 100000
+            },
+            "dependencies": [
+              {
+                "clause": "or",
+                "action": "hidden",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Электро"
+                    ]
+                  }
+                ]
+              },
+              {
+                "clause": "and",
+                "action": "required",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Бензин"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "dependencies_text": [
+              "Не применимо, если либо в поле EngineType указано значение 'Электро'",
+              "Обязательно, если в поле EngineType указано значение 'Бензин'"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Stroke",
+        "label": "Число тактов",
+        "descriptions": "Число тактов",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "2"
+              },
+              {
+                "value": "4"
+              }
+            ],
+            "dependencies": [
+              {
+                "clause": "and",
+                "action": "visible",
+                "pairs": [
+                  {
+                    "source_field_tag": "EngineType",
+                    "clause": "values",
+                    "values": [
+                      "Бензин"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "dependencies_text": [
+              "Применимо, если в поле EngineType указано значение 'Бензин'"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "PersonCapacity",
+        "label": "Максимально пассажиров",
+        "descriptions": "Максимально пассажиров",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": true,
+            "values_range": {
+              "min": 1,
+              "max": 100
+            }
+          }
+        ]
+      },
+      {
+        "tag": "TrackWidth",
+        "label": "Ширина гусеницы",
+        "descriptions": "Ширина гусеницы.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": true,
+            "values_range": {
+              "min": 1,
+              "max": 1000
+            }
+          }
+        ]
+      },
+      {
+        "tag": "VIN",
+        "label": "VIN или номер рамы",
+        "descriptions": "VIN или номер рамы ([vehicle identification number](https://ru.wikipedia.org/wiki/%D0%98%D0%B4%D0%B5%D0%BD%D1%82%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D1%8B%D0%B9_%D0%BD%D0%BE%D0%BC%D0%B5%D1%80_%D1%82%D1%80%D0%B0%D0%BD%D1%81%D0%BF%D0%BE%D1%80%D1%82%D0%BD%D0%BE%D0%B3%D0%BE_%D1%81%D1%80%D0%B5%D0%B4%D1%81%D1%82%D0%B2%D0%B0)) — строка до 20 символов.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false,
+            "values_range": {
+              "min": 0,
+              "max": 20
+            }
+          }
+        ]
+      },
+      {
+        "tag": "Availability",
+        "label": "Доступность",
+        "descriptions": "Доступность",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": true,
+            "values": [
+              {
+                "value": "В наличии"
+              },
+              {
+                "value": "Под заказ"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Condition",
+        "label": "Состояние",
+        "descriptions": "Состояние",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "select",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false,
+            "values": [
+              {
+                "value": "Новое"
+              },
+              {
+                "value": "Б/у"
+              },
+              {
+                "value": "На запчасти"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Kilometrage",
+        "label": "Пробег",
+        "descriptions": "Пробег (для б/у и на запчасти) транспортного средства в км - целое число, в диапазоне от 1 до 1000000",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "integer",
+            "required": false,
+            "required_by_dependency": true,
+            "values_range": {
+              "min": 1,
+              "max": 1000000
+            },
+            "dependencies": [
+              {
+                "clause": "and",
+                "action": "visible",
+                "pairs": [
+                  {
+                    "source_field_tag": "Condition",
+                    "clause": "values",
+                    "values": [
+                      "Б/у",
+                      "На запчасти"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "dependencies_text": [
+              "Применимо, если в поле Condition указаны значения: Б/у или На запчасти"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "Images",
+        "label": "Фото",
+        "descriptions": "Фотографии — вложенные элементы, по одному элементу «Image» на каждое изображение. На файл фотографии можно ссылаться с помощью (указание обоих атрибутов не допускается):\n\n— прямой HTTP-ссылки или ссылки на Яндекс Диск ([подробнее](https://www.avito.ru/autoload/documentation#yandexDiskPublicLinks)) — атрибут «url»;\n\n— названия файла с указанием расширения — атрибут «name». Такой способ используется при загрузке файла с объявлениями и архива с фотографиями вручную через Личный кабинет.\n\nДопустимые графические форматы: [JPEG](https://ru.wikipedia.org/wiki/JPEG), [PNG](https://ru.wikipedia.org/wiki/PNG).\n\nМаксимальный размер одного изображения – 25 Мб.\n\nК одному объявлению можно добавить не более 20 фотографий, остальные будут проигнорированы.\n\nПри загрузке фото по ссылке проверьте, что изображение уже доступно и его можно открыть или скачать.\n\nЧтобы изменить фотографию в объявлении, используйте другую ссылку. Новое изображение по прежнему url-адресу не будет загружено.",
+        "feed_format": [
+          "xml"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "ImageUrls",
+        "label": "Ссылки на фото",
+        "descriptions": "Фотографии в виде:\n\n— прямых HTTP-ссылок;\n\n— ссылок на Яндекс Диск ([подробнее](https://www.avito.ru/autoload/documentation#yandexDiskPublicLinks))\n\nДопустимые графические форматы: [JPEG](https://ru.wikipedia.org/wiki/JPEG), [PNG](https://ru.wikipedia.org/wiki/PNG).\n\nМаксимальный размер одного изображения — 25 Мб.\n\nК одному объявлению можно добавить не более 20 фотографий, остальные будут проигнорированы.",
+        "feed_format": [
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false,
+            "dependencies_text": [
+              "Если не указан ImageNames"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "ImageNames",
+        "label": "Названия фото",
+        "descriptions": "Фотографии в виде названий файлов (с указанием расширения).\n\nЭлемент используется при загрузке файла c объявлениями и архива с фотографиями вручную через Личный кабинет.\n\nДопустимые графические форматы фотографий: [JPEG](https://ru.wikipedia.org/wiki/JPEG), [PNG](https://ru.wikipedia.org/wiki/PNG). Максимально допустимый размер файла изображения – 30 Мб.\n\nДля каждой категории определено максимальное количество фотографий, которые можно прикрепить к объявлению (все фотографии свыше этого количества игнорируются):\n\n- Максимальное количество фотографий для категории Мотоциклы и мототехника - 20 фото",
+        "feed_format": [
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": true,
+            "required_by_dependency": false,
+            "dependencies_text": [
+              "Если не указан ImageUrls"
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "VideoFileURL",
+        "label": "URL видеофайла",
+        "descriptions": "Видеофайл в виде:\n\n— прямых HTTP-ссылок, заканчивающихся на название формата загружаемого видео(**.mp4**, **.mov**, **.hevc**, **.webm**);\n\n— приватных или публичных ссылок на Яндекс Диск ([подробнее](https://www.avito.ru/autoload/documentation#yandexDiskPublicLinks)).\n\nДля формата XML ссылка на видео должна быть внутри CDATA.\n\nДлительность видео должна составлять от 5 секунд до 3 минут, а размер файла не должен превышать 500 МБ. Иначе видео не загрузится.\n\nДопустимые форматы видео: [MP4](https://en.wikipedia.org/wiki/MP4_file_format), [MOV](https://en.wikipedia.org/wiki/MOV), [HEVC](https://en.wikipedia.org/wiki/High_Efficiency_Video_Coding), [WebM](https://en.wikipedia.org/wiki/WebM).\n\nЗагруженный видеоролик будет проигрываться на первом месте в галерее на странице объявления. Также пользователи увидят видео в результатах поиска, но только первые 5 секунд.\n\nЗагрузка видео доступна пользователям, имеющим Тариф+.",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      },
+      {
+        "tag": "VideoURL",
+        "label": "Ссылка на видео",
+        "descriptions": "Видео\nСсылка в формате\n\n- https://www.youtube.com/watch?v=*** для Youtube\n- https://rutube.ru/video/***/ для Rutube",
+        "feed_format": [
+          "xml",
+          "excel"
+        ],
+        "content": [
+          {
+            "field_type": "input",
+            "data_type": "string",
+            "required": false,
+            "required_by_dependency": false
+          }
+        ]
+      }
+    ]
+  }
+}

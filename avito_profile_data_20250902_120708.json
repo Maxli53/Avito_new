@@ -1,0 +1,53 @@
+{
+  "V1 Profile": {
+    "upload_url": "http://conventum.kg/api/avito/test_corrected_profile.xml",
+    "autoload_enabled": true,
+    "report_email": "andreev@ramund.store",
+    "schedule": [
+      {
+        "rate": 100,
+        "weekdays": [
+          0,
+          3,
+          1,
+          4,
+          2
+        ],
+        "time_slots": [
+          18,
+          10,
+          14
+        ]
+      }
+    ]
+  },
+  "V2 Profile": {
+    "feeds_data": [
+      {
+        "feed_name": "",
+        "feed_url": "http://conventum.kg/api/avito/test_corrected_profile.xml"
+      }
+    ],
+    "autoload_enabled": true,
+    "report_email": "andreev@ramund.store",
+    "allow_pay_over_limit": false,
+    "schedule": [
+      {
+        "rate": 100,
+        "weekdays": [
+          2,
+          1,
+          0,
+          3,
+          4
+        ],
+        "time_slots": [
+          18,
+          10,
+          14
+        ]
+      }
+    ],
+    "uploadMode": "auto"
+  }
+}
