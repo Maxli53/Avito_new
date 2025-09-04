@@ -1,0 +1,32 @@
+# Core ML/AI libraries - RTX 3090 optimized
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+transformers>=4.35.0
+datasets>=2.14.0
+accelerate>=0.24.0
+peft>=0.6.0
+bitsandbytes>=0.41.0
+flash-attn>=2.3.0
+
+# Training utilities
+trl>=0.7.0
+wandb>=0.16.0
+tensorboard>=2.15.0
+
+# Data processing
+PyPDF2>=3.0.1
+fitz>=1.23.0  # PyMuPDF for better PDF extraction
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Production inference
+vllm>=0.2.0
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Utilities
+tqdm>=4.66.0
+matplotlib>=3.7.0
+seaborn>=0.13.0
+python-dotenv>=1.0.0
